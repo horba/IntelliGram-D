@@ -1,0 +1,97 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Instagram Bot settings</title>
+    <style>
+        .block {
+            min-width: 200px;
+            min-height: 200px;
+            border: 1px solid green;
+            padding: 20px;
+            margin: 10pt;
+        }
+        form label {
+            display: inline-block;
+            min-width: 100pt;
+        }
+        form {
+            margin: 5pt;
+            padding: 2pt;
+        }
+        .block>div {
+            margin: 5pt;
+        }
+        form>div {
+            margin: 2pt;
+        }
+    </style>
+</head>
+<body>
+<div>
+    
+    <h1>Instagram bot admin page</h1>
+    <div class="block">
+        <form id="config_form">
+            <div><label>instagram username</label><input name="instaUsername" type="text" value="" placeholder="Johnsmith"/>
+            </div>
+            <div><label>instagram password</label><input name="instaPassword" type="text" value="" placeholder="Password"/>
+            </div>
+            <div><label>telegram username</label><input name="telegramUsername" type="text" value="" placeholder="john11"/>
+            </div>
+            <div><label>tags</label><input name="tags" type="text" value="" placeholder="kittens, cats"/>
+            </div>
+            <div><label>topics</label><input name="topics" type="text" value="" placeholder="nature, lake"/>
+            </div>
+        </form>
+        <div>
+            <button id="get_config">Get configuration</button>
+            <button id="save_config">Save configuration</button>
+        </div>
+        <div id="ajax_result"></div>
+    </div>
+    <div class="block">
+        <h3>Statistics</h3>
+        <div>Processed <span id="processed_posts">1012</span> posts</div>
+        <div>Matched 21 photos</div>
+        <div>Matched tags:12</div>
+        <div>Matched topics:9</div>
+    </div>
+
+
+</div>
+<script src="js/jquery-3.2.1.min.js"></script>
+<script>
+    $(function() {//jquery magic to run script after page fully loaded
+        $("#get_config").click(function(e) {
+            e.preventDefault();
+            $.get("/api/configuration").done(function (data) {                
+                let values = data;
+                for (var fieldName in values) {
+                    if (values.hasOwnProperty(fieldName)) {                        
+                        $('#config_form input[name=' + fieldName + ']').val(values[fieldName]);//magic - putting values into corresponding fields
+                    }
+                };
+                
+                
+            });
+        });
+        $("#save_config").click(function(e) {
+            e.preventDefault();
+            let data = $("#config_form").serialize();//magic - gathering data from fields into js object, ready for sending via post
+            $.post("/api/configuration", data).done(function(response, status, xhm) {
+                console.log(response);
+                $("#ajax_result").text("Save status: " + status);
+            });
+
+        });
+    });
+</script>
+
+</body>
+</html>
