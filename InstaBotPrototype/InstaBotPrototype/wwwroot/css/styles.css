@@ -1,0 +1,63 @@
+﻿.block {
+    min-width: 200px;
+    min-height: 200px;
+    border: 1px solid green;
+    padding: 20px;
+    margin: 10pt;
+}
+
+form label {
+    display: inline-block;
+    min-width: 100pt;
+}
+
+form {
+    margin: 5pt;
+    padding: 2pt;
+}
+
+.block > div {
+    margin: 5pt;
+}
+
+form > div {
+    margin: 2pt;
+}
+
+
+.page-container {
+    display: flex;
+    flex-flow: column wrap;
+}
+.header {
+    align-self: stretch;
+    order: 1;
+}
+.content-container {
+    display: flex;
+    flex-flow: row nowrap;
+    order: 2;
+}
+.footer {
+    align-self: center;
+    order: 3;
+}
+
+
+.content-left {
+    flex-grow: 1;
+    flex-basis: 20%;
+    order: 1;
+}
+
+.content-center {
+    flex-grow: 3;
+    flex-basis: 60%;
+    order: 2;
+}
+
+.content-right {
+    flex-grow: 1;
+    flex-basis: 20%;
+    order: 3;
+}

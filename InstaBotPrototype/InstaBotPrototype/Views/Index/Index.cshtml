@@ -8,63 +8,52 @@
 <html>
 <head>
     <title>Instagram Bot settings</title>
-    <style>
-        .block {
-            min-width: 200px;
-            min-height: 200px;
-            border: 1px solid green;
-            padding: 20px;
-            margin: 10pt;
-        }
-        form label {
-            display: inline-block;
-            min-width: 100pt;
-        }
-        form {
-            margin: 5pt;
-            padding: 2pt;
-        }
-        .block>div {
-            margin: 5pt;
-        }
-        form>div {
-            margin: 2pt;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="~/css/styles.css">
 </head>
 <body>
-<div>
-    
-    <h1>Instagram bot admin page</h1>
-    <div class="block">
-        <form id="config_form">
-            <div><label>instagram username</label><input name="instaUsername" type="text" value="" placeholder="Johnsmith"/>
+        <div class="page-container">
+        <div class="header"><h1>Instagram bot admin page</h1></div>
+        <div class="content-container">
+            <div class="content-left"></div>
+            <div class="content-center">
+                <div class="block">
+                    <form id="config_form">
+                        <div>
+                            <label>instagram username</label><input name="instaUsername" type="text" value="" placeholder="Johnsmith" />
+                        </div>
+                        <div>
+                            <label>instagram password</label><input name="instaPassword" type="text" value="" placeholder="Password" />
+                        </div>
+                        <div>
+                            <label>telegram username</label><input name="telegramUsername" type="text" value="" placeholder="john11" />
+                        </div>
+                        <div>
+                            <label>tags</label><input name="tags" type="text" value="" placeholder="kittens, cats" />
+                        </div>
+                        <div>
+                            <label>topics</label><input name="topics" type="text" value="" placeholder="nature, lake" />
+                        </div>
+                    </form>
+                    <div>
+                        <button id="get_config">Get configuration</button>
+                        <button id="save_config">Save configuration</button>
+                    </div>
+                    <div id="ajax_result"></div>
+                </div>
+                <div class="block">
+                    <h3>Statistics</h3>
+                    <div>Processed <span id="processed_posts">1012</span> posts</div>
+                    <div>Matched 21 photos</div>
+                    <div>Matched tags: 12</div>
+                    <div>Matched topics: 9</div>
+                </div>
             </div>
-            <div><label>instagram password</label><input name="instaPassword" type="text" value="" placeholder="Password"/>
-            </div>
-            <div><label>telegram username</label><input name="telegramUsername" type="text" value="" placeholder="john11"/>
-            </div>
-            <div><label>tags</label><input name="tags" type="text" value="" placeholder="kittens, cats"/>
-            </div>
-            <div><label>topics</label><input name="topics" type="text" value="" placeholder="nature, lake"/>
-            </div>
-        </form>
-        <div>
-            <button id="get_config">Get configuration</button>
-            <button id="save_config">Save configuration</button>
+            <div class="content-right"></div>
         </div>
-        <div id="ajax_result"></div>
-    </div>
-    <div class="block">
-        <h3>Statistics</h3>
-        <div>Processed <span id="processed_posts">1012</span> posts</div>
-        <div>Matched 21 photos</div>
-        <div>Matched tags:12</div>
-        <div>Matched topics:9</div>
-    </div>
+        <div class="footer">© 2017 IntelliGram-D</div>
+        </div>
+    
 
-
-</div>
 <script src="js/jquery-3.2.1.min.js"></script>
 <script>
     $(function() {//jquery magic to run script after page fully loaded
