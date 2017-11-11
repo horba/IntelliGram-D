@@ -7,12 +7,11 @@ namespace DBMigrator
     {
         #region Public Constructors
 
-        public DBMigration(DbCommand applyCommand, DbCommand reverseCommand, string name, DbConnection connection = null)
+        public DBMigration(DbCommand applyCommand, DbCommand reverseCommand, string name)
         {
             ApplyCommand = applyCommand;
             ReverseCommand = reverseCommand;
             Name = name;
-            Connection = connection;
         }
 
         #endregion Public Constructors
@@ -20,7 +19,7 @@ namespace DBMigrator
         #region Public Properties
 
         public DbCommand ApplyCommand { get; private set; }
-        public DbConnection Connection { get; set; }
+        public string ConnectionString { get; set; }
         public DbProviderFactory Factory { get; set; }
         public bool IsApplied { get; set; }
         public string Name { get; private set; }
@@ -61,21 +60,32 @@ namespace DBMigrator
         private void AddLog()
         {
             DbCommand command = Factory.CreateCommand();
-            command.Connection = Connection;
-            command.CommandText = $"insert into dbo.Migrations VALUES({Name}, {DateTime.Now});";
+            command.Connection = Factory.CreateConnection();
+            command.Connection.ConnectionString = ConnectionString;
 
-            command.ExecuteNonQuery();
+            command.CommandText = $"INSERT INTO dbo.Migrations (Name,TimeStamp) VALUES ('{Name}', GetDate())";
+
+            using (command.Connection)
+            {
+                command.Connection.Open();
+                command.ExecuteNonQuery();
+            }
         }
 
         private void RemoveLog() => throw new NotImplementedException(); //todo: delete log entry
 
-        private bool Run(DbCommand dbCommand)
+        private bool Run(DbCommand command)
         {
             bool correct = true;
+            DbConnection dbConnection = Factory.CreateConnection();
+            dbConnection.ConnectionString = ConnectionString;
+
+            command.Connection = dbConnection;
+
             try
             {
-                Connection.Open();
-                dbCommand.ExecuteNonQuery();
+                dbConnection.Open();
+                command.ExecuteNonQuery();
             }
             catch
             {
@@ -83,7 +93,7 @@ namespace DBMigrator
             }
             finally
             {
-                Connection?.Close();
+                dbConnection?.Close();
             }
             return correct;
         }
