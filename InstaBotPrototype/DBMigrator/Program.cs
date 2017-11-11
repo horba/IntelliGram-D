@@ -34,7 +34,7 @@ namespace DBMigrator
                     }
                 }
 
-                Console.WriteLine(string.Empty.PadRight(20, '-'));
+                Console.WriteLine(string.Empty.PadRight(30, '-'));
             }
         }
 
@@ -70,6 +70,8 @@ namespace DBMigrator
                 }
             }
 
+            dbConnection.Close();
+
             DbCommand command = factory.CreateCommand();
             command.CommandText = "select * from dbo.Migrations";
             command.Connection = factory.CreateConnection();
@@ -77,23 +79,31 @@ namespace DBMigrator
 
             command.Connection.Open();
 
-            DbDataReader reader = command.ExecuteReader();
-
-            while (reader.Read())
+            try
             {
-                string name = (string)reader.GetValue(0);
+                DbDataReader reader = command.ExecuteReader();
 
-                foreach (DBMigration migration in list)
+                while (reader.Read())
                 {
-                    if (migration.Name == name)
+                    string name = (string)reader.GetValue(0);
+
+                    foreach (DBMigration migration in list)
                     {
-                        migration.IsApplied = true;
-                        break;
+                        if (migration.Name == name)
+                        {
+                            migration.IsApplied = true;
+                            break;
+                        }
                     }
                 }
             }
-
-            dbConnection.Close();
+            catch
+            {
+            }
+            finally
+            {
+                command?.Connection?.Close();
+            }
 
             return list.ToArray();
         }

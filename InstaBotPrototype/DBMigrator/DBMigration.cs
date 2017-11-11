@@ -60,19 +60,18 @@ namespace DBMigrator
         private void AddLog()
         {
             DbCommand command = Factory.CreateCommand();
-            command.Connection = Factory.CreateConnection();
-            command.Connection.ConnectionString = ConnectionString;
+            command.CommandText = $"INSERT INTO dbo.Migrations (Name, ApplyTime) VALUES ('{Name}', GetDate())";
 
-            command.CommandText = $"INSERT INTO dbo.Migrations (Name,TimeStamp) VALUES ('{Name}', GetDate())";
-
-            using (command.Connection)
-            {
-                command.Connection.Open();
-                command.ExecuteNonQuery();
-            }
+            Run(command);
         }
 
-        private void RemoveLog() => throw new NotImplementedException(); //todo: delete log entry
+        private void RemoveLog()
+        {
+            DbCommand command = Factory.CreateCommand();
+            command.CommandText = $"delete from dbo.Migrations where Name='{Name}'";
+
+            Run(command);
+        }
 
         private bool Run(DbCommand command)
         {
