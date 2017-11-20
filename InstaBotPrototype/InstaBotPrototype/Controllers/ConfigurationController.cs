@@ -10,25 +10,30 @@ namespace InstaBotPrototype.Controllers
     [Route("api/[controller]")]
     public class ConfigurationController : Controller
     {
+        ConfigDataProvider configProvider;
         // GET api/configuration
         [HttpGet]
         public ConfigurationModel Get()
         {
-            return new ConfigurationModel { InstaUsername = "JohnSmith", InstaPassword = "Passw0rd", TelegramUsername = "telegaN", Tags = "cats", Topics = "Nature, Lake" };
+            configProvider = new ConfigDataProvider();
+            return configProvider.GetConfig();
         }
 
         // GET api/configuration/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public ConfigurationModel Get(int id)
         {
-            return "value";
+            configProvider = new ConfigDataProvider();
+            return configProvider.GetConfig(id);
         }
 
         // POST api/configuration
         [HttpPost]
         public IActionResult Post([FromForm]ConfigurationModel model)
         {
-            return Ok(model);
+            configProvider = new ConfigDataProvider();
+            configProvider.UpdateConfig(model);
+            return Ok();
         }
 
         // PUT api/configuration/5
