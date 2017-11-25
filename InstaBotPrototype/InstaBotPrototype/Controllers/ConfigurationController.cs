@@ -10,25 +10,52 @@ namespace InstaBotPrototype.Controllers
     [Route("api/[controller]")]
     public class ConfigurationController : Controller
     {
+        ConfigService configService = new ConfigService();
+
         // GET api/configuration
         [HttpGet]
         public ConfigurationModel Get()
         {
-            return new ConfigurationModel { InstaUsername = "JohnSmith", InstaPassword = "Passw0rd", TelegramUsername = "telegaN", Tags = "cats", Topics = "Nature, Lake" };
+            return configService.GetConfig();
         }
 
         // GET api/configuration/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public ConfigurationModel Get(int id)
         {
-            return "value";
+            if (id > 0)
+            {
+                try
+                {
+                    return configService.GetConfig(id);
+                }
+                catch
+                {
+
+                    return null;
+                }
+                
+            }
+            else
+            {
+                return configService.GetConfig();
+            }
         }
 
         // POST api/configuration
         [HttpPost]
         public IActionResult Post([FromForm]ConfigurationModel model)
         {
-            return Ok(model);
+            try
+            {
+                configService.SaveConfig(model);
+                return Ok(200);
+            }
+            catch
+            {
+
+                return null;
+            }
         }
 
         // PUT api/configuration/5
