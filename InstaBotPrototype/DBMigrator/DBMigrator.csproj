@@ -43,7 +43,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Migrations\CreateMigrationsTable.cs" />
+    <Compile Include="Migrations\CreateUsersTable.cs" />
     <Compile Include="DBMigration.cs" />
+    <Compile Include="IndexerAttribute.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
