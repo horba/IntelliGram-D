@@ -17,12 +17,10 @@ namespace DBMigrator
 
             var dbConnection = factory.CreateConnection();
             dbConnection.ConnectionString = connString;
-
-
+            
 
             var migrations = (from type in Assembly.GetCallingAssembly().GetTypes() where type.IsSubclassOf(typeof(DBMigration)) orderby type.GetCustomAttribute<IndexerAttribute>().Id select Activator.CreateInstance(type, new object[] { factory, dbConnection }) as DBMigration).ToList();
-
-
+            
 
             var command = factory.CreateCommand();
             command.CommandText = "select * from dbo.Migrations";
@@ -51,22 +49,21 @@ namespace DBMigrator
             catch { }
 
 
-
             foreach (var migration in migrations)
             {
-                int id = migration.GetType().GetCustomAttribute<IndexerAttribute>().Id;
+                long id = migration.GetType().GetCustomAttribute<IndexerAttribute>().Id;
                 if (migration.IsApplied)
                 {
-                    Console.WriteLine($"Migration #{id} {migration.Name} was applied");
+                    Console.WriteLine($"Migration {id} {migration.Name} was applied");
                 }
                 else
                 {
-                    Console.WriteLine($"Migration #{id} {migration.Name} wasn't applied");
+                    Console.WriteLine($"Migration {id} {migration.Name} wasn't applied");
                     Console.WriteLine("Applying...");
 
                     migration.Apply();
 
-                    Console.WriteLine($"Migration #{id} {migration.Name} is applied");
+                    Console.WriteLine($"Migration {id} {migration.Name} is applied");
                 }
 
                 Console.WriteLine(string.Empty.PadRight(Console.WindowWidth - 1, '-'));

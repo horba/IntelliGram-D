@@ -4,7 +4,7 @@ namespace DBMigrator
 {
     class IndexerAttribute : Attribute
     {
-        public int Id { get; set; }
-        public IndexerAttribute(int id) => Id = id;
+        public long Id { get; private set; }
+        public IndexerAttribute(long id) => Id = id;
     }
 }

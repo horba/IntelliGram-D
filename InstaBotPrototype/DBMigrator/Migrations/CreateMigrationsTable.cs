@@ -2,7 +2,7 @@
 
 namespace DBMigrator
 {
-    [Indexer(0)] // Apply attribute (index must be greater than indexes used before)
+    [Indexer(201711290739)] // Apply attribute (index must apply format yyyymmddhhmm)
     class CreateMigrationsTable : DBMigration // Derive from base class
     {
         public CreateMigrationsTable(object factory, object connection) : base(factory as DbProviderFactory, connection as DbConnection) // Call base constructor

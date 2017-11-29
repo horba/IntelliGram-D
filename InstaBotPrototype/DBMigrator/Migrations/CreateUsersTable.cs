@@ -2,7 +2,7 @@
 
 namespace DBMigrator
 {
-    [Indexer(1)]
+    [Indexer(201711290745)]
     class CreateUsersTable : DBMigration
     {
         public CreateUsersTable(object factory, object connection) : base(factory as DbProviderFactory, connection as DbConnection)
