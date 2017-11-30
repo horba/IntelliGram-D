@@ -14,13 +14,27 @@ namespace DBMigrator
             ReverseCommand = Factory.CreateCommand();
 
             this.connection = connection;
+
+            var command = factory.CreateCommand();
+            command.CommandText = $"select count(*) from dbo.Migrations where Name = '{Name}'";
+            command.Connection = connection;
+
+            try
+            {
+                if ((int)command.ExecuteScalar() == 1)
+                {
+                    IsApplied = true;
+                }
+
+            }
+            catch { }
         }
 
         public DbCommand ApplyCommand { get; private set; }
         public DbCommand ReverseCommand { get; private set; }
-        public DbProviderFactory Factory { get; set; }
+        public DbProviderFactory Factory { get; private set; }
         public string Name { get; private set; }
-        public bool IsApplied { get; set; }
+        public bool IsApplied { get; private set; }
         DbConnection connection;
 
         public void Apply()

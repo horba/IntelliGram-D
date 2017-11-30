@@ -18,36 +18,9 @@ namespace DBMigrator
             var dbConnection = factory.CreateConnection();
             dbConnection.ConnectionString = connString;
             
-
-            var migrations = (from type in Assembly.GetCallingAssembly().GetTypes() where type.IsSubclassOf(typeof(DBMigration)) orderby type.GetCustomAttribute<IndexerAttribute>().Id select Activator.CreateInstance(type, new object[] { factory, dbConnection }) as DBMigration).ToList();
-            
-
-            var command = factory.CreateCommand();
-            command.CommandText = "select * from dbo.Migrations";
-            command.Connection = dbConnection;
-
             dbConnection.Open();
 
-            try
-            {
-                var reader = command.ExecuteReader();
-
-                while (reader.Read())
-                {
-                    string name = (string)reader.GetValue(0);
-
-                    foreach (var migration in migrations)
-                    {
-                        if (migration.Name == name)
-                        {
-                            migration.IsApplied = true;
-                            break;
-                        }
-                    }
-                }
-            }
-            catch { }
-
+            var migrations = (from type in Assembly.GetCallingAssembly().GetTypes() where type.IsSubclassOf(typeof(DBMigration)) orderby type.GetCustomAttribute<IndexerAttribute>().Id select Activator.CreateInstance(type, new object[] { factory, dbConnection }) as DBMigration).ToList();
 
             foreach (var migration in migrations)
             {
