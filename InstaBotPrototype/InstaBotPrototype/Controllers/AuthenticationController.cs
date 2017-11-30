@@ -6,15 +6,15 @@ namespace InstaBotPrototype.Controllers
     public class AuthenticationController : Controller
     {
         [HttpGet]
-        int Login([FromBody]string login, [FromBody]string password)
+        IActionResult Login([FromBody]string login, [FromBody]string password)
         {
-            return 0;
+            return Ok();
         }
 
         [HttpPost]
-        int Register([FromBody]string login, [FromBody]string password)
+        IActionResult Register([FromBody]string login, [FromBody]string password)
         {
-            return 0;
+            return Ok();
         }
     }
 }
