@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using InstaBotPrototype.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace InstaBotPrototype.Controllers
 {
@@ -6,13 +7,13 @@ namespace InstaBotPrototype.Controllers
     public class AuthenticationController : Controller
     {
         [HttpGet]
-        IActionResult Login([FromBody]string login, [FromBody]string password)
+        IActionResult Login([FromBody]LoginModel loginModel)
         {
             return Ok();
         }
 
         [HttpPost]
-        IActionResult Register([FromBody]string login, [FromBody]string password)
+        IActionResult Register([FromBody]LoginModel loginModel)
         {
             return Ok();
         }
