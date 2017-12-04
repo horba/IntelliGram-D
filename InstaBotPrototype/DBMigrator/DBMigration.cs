@@ -1,4 +1,5 @@
 ﻿using System.Data.Common;
+using static System.Console;
 
 namespace DBMigrator
 {
@@ -27,7 +28,13 @@ namespace DBMigrator
                 }
 
             }
-            catch { }
+            catch
+            {
+                WriteLine("Error happened");
+                WriteLine("Try restarting this application");
+                WriteLine("If you continue getting this message, connect application distributor");
+                WriteLine(string.Empty.PadRight(WindowWidth - 1, '-'));
+            }
         }
 
         public DbCommand ApplyCommand { get; private set; }
