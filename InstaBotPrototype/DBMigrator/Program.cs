@@ -1,119 +1,48 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Data.Common;
-using System.IO;
+using System.Linq;
+using System.Reflection;
 
 namespace DBMigrator
 {
     internal class Program
     {
-        #region Private Methods
-
-        private static void ApplyMigrations(params DBMigration[] migrations)
+        private static void Main()
         {
-            for (int i = 0; i < migrations.Length; i++)
-            {
-                DBMigration migration = migrations[i];
-                if (migration.IsApplied)
-                {
-                    Console.WriteLine($"Migration {migration.Name} was applied");
-                }
-                else
-                {
-                    Console.WriteLine($"Migration {migration.Name} wasn't applied");
-                    Console.WriteLine("Applying...");
-
-                    if (migration.Apply())
-                    {
-                        Console.WriteLine($"Migration {migration.Name} is applied");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Something went wrong...");
-                    }
-                }
-
-                Console.WriteLine(string.Empty.PadRight(30, '-'));
-            }
-        }
-
-        private static DBMigration[] GetMigrations()
-        {
-            List<DBMigration> list = new List<DBMigration>();
-
             string connString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
             string provider = ConfigurationManager.ConnectionStrings[1].ProviderName;
 
-            DbProviderFactory factory = DbProviderFactories.GetFactory(provider);
+            var factory = DbProviderFactories.GetFactory(provider);
 
-            DbConnection dbConnection = factory.CreateConnection();
+            var dbConnection = factory.CreateConnection();
             dbConnection.ConnectionString = connString;
+            
+            dbConnection.Open();
 
-            DirectoryInfo directory = new DirectoryInfo(Directory.GetCurrentDirectory() + "/Migrations");
+            var migrations = (from type in Assembly.GetCallingAssembly().GetTypes() where type.IsSubclassOf(typeof(DBMigration)) orderby type.GetCustomAttribute<IndexerAttribute>().Id select Activator.CreateInstance(type, new object[] { factory, dbConnection }) as DBMigration).ToList();
 
-            foreach (FileInfo file in directory.GetFiles("*.txt"))
+            foreach (var migration in migrations)
             {
-                using (StreamReader streamReader = new StreamReader(file.OpenRead()))
+                long id = migration.GetType().GetCustomAttribute<IndexerAttribute>().Id;
+                if (migration.IsApplied)
                 {
-                    DbCommand apply = factory.CreateCommand();
-                    apply.CommandText = streamReader.ReadLine();
-
-                    DbCommand reverse = factory.CreateCommand();
-                    reverse.CommandText = streamReader.ReadLine();
-
-                    string name = file.Name.Substring(0, file.Name.Length - 4);
-
-                    DBMigration migration = new DBMigration(apply, reverse, name) { Factory = factory, ConnectionString = connString };
-
-                    list.Add(migration);
+                    Console.WriteLine($"Migration {id} {migration.Name} was applied");
                 }
+                else
+                {
+                    Console.WriteLine($"Migration {id} {migration.Name} wasn't applied");
+                    Console.WriteLine("Applying...");
+
+                    migration.Apply();
+
+                    Console.WriteLine($"Migration {id} {migration.Name} is applied");
+                }
+
+                Console.WriteLine(string.Empty.PadRight(Console.WindowWidth - 1, '-'));
             }
 
             dbConnection.Close();
-
-            DbCommand command = factory.CreateCommand();
-            command.CommandText = "select * from dbo.Migrations";
-            command.Connection = factory.CreateConnection();
-            command.Connection.ConnectionString = connString;
-
-            command.Connection.Open();
-
-            try
-            {
-                DbDataReader reader = command.ExecuteReader();
-
-                while (reader.Read())
-                {
-                    string name = (string)reader.GetValue(0);
-
-                    foreach (DBMigration migration in list)
-                    {
-                        if (migration.Name == name)
-                        {
-                            migration.IsApplied = true;
-                            break;
-                        }
-                    }
-                }
-            }
-            catch
-            {
-            }
-            finally
-            {
-                command?.Connection?.Close();
-            }
-
-            return list.ToArray();
         }
-
-        private static void Main(string[] args)
-        {
-            DBMigration[] migrations = GetMigrations();
-            ApplyMigrations(migrations);
-        }
-
-        #endregion Private Methods
     }
 }
