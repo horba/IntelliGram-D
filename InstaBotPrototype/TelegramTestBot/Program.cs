@@ -146,7 +146,7 @@ namespace Telegram.Bot.Example
             }
         }
 
-        private static async Task<bool> AddUser(int chatId, string fisrtName, string lastName)
+        private static async Task<bool> AddUser(int chatId, string firstName, string lastName)
         {
             using (var connection = new SqlConnection(connectionString))
             {
@@ -162,7 +162,7 @@ namespace Telegram.Bot.Example
                     using (var addCmd = new SqlCommand(addQuery, connection))
                     {
                         addCmd.Parameters.Add(new SqlParameter() { ParameterName = "@ChatID", SqlDbType = System.Data.SqlDbType.Int, Value = chatId });
-                        addCmd.Parameters.Add(new SqlParameter() { ParameterName = "@FirstName", SqlDbType = System.Data.SqlDbType.NVarChar, Value = fisrtName });
+                        addCmd.Parameters.Add(new SqlParameter() { ParameterName = "@FirstName", SqlDbType = System.Data.SqlDbType.NVarChar, Value = firstName });
                         addCmd.Parameters.Add(new SqlParameter() { ParameterName = "@LastName", SqlDbType = System.Data.SqlDbType.NVarChar, Value = (object)lastName ?? DBNull.Value });
                         await addCmd.ExecuteNonQueryAsync();
                         return true;
