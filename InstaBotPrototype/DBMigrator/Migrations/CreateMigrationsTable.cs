@@ -1,6 +1,6 @@
 ﻿using System.Data.Common;
 
-namespace DBMigrator
+namespace DBMigrator.Migrations
 {
     [Indexer(201711290739)] // Apply attribute (index must apply format yyyymmddhhmm)
     class CreateMigrationsTable : DBMigration // Derive from base class
