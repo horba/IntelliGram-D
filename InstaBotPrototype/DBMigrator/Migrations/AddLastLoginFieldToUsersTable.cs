@@ -3,7 +3,7 @@
 namespace DBMigrator.Migrations
 {
     [Indexer(201712050618)]
-    class AddLastLoginFieldToUsersTable:DBMigration
+    class AddLastLoginFieldToUsersTable : DBMigration
     {
         public AddLastLoginFieldToUsersTable(object factory, object connection) : base(factory as DbProviderFactory, connection as DbConnection)
         {
