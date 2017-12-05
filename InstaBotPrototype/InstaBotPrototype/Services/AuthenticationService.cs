@@ -30,9 +30,9 @@ namespace InstaBotPrototype.Services
             }
             else
             {
-            var updateLastLogin = factory.CreateCommand();
-            updateLastLogin.Connection = dbConnection;
-            updateLastLogin.CommandText = $"update dbo.Users LastLogin = 'current_timestamp' where Id = '{id}'";
+                var updateLastLogin = factory.CreateCommand();
+                updateLastLogin.Connection = dbConnection;
+                updateLastLogin.CommandText = $"update dbo.Users LastLogin = SYSDATETIME() where Id = '{id}'";
                 updateLastLogin.ExecuteNonQuery();
             }
 

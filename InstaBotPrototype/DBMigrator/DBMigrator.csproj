@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Migrations\AddLastLoginFieldToUsersTable.cs" />
     <Compile Include="Migrations\CreateMigrationsTable.cs" />
     <Compile Include="Migrations\CreateUsersTable.cs" />
     <Compile Include="DBMigration.cs" />

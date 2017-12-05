@@ -28,9 +28,9 @@ namespace DBMigrator
                 }
 
             }
-            catch(Exception e)
+            catch
             {
-                WriteLine("Error happened {0}",e.Message);
+                WriteLine("Error happened");
                 WriteLine("Try restarting this application");
                 WriteLine("If you continue getting this message, connect application distributor");
                 WriteLine(string.Empty.PadRight(WindowWidth - 1, '-'));
