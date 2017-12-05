@@ -3,6 +3,6 @@
     public interface ITelegramService
     {
         int Connect(string username);
-        void SendMessage(string message,int userID);
+        void SendMessage(string message, string username);
     }
 }
