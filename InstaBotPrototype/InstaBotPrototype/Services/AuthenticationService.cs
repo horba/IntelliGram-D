@@ -17,14 +17,13 @@ namespace InstaBotPrototype.Services
             select.Connection = dbConnection;
             select.CommandText = $"select Id from dbo.Users where Login = '{login}' and Password = '{password}'";
 
-
             dbConnection.Open();
 
             var reader = select.ExecuteReader();
             reader.Read();
             var id = reader.GetValue(0) as int?;
 
-            if (id == null)
+            if (!id.HasValue)
             {
                 id = -1;
             }
@@ -32,13 +31,13 @@ namespace InstaBotPrototype.Services
             {
                 var updateLastLogin = factory.CreateCommand();
                 updateLastLogin.Connection = dbConnection;
-                updateLastLogin.CommandText = $"update dbo.Users LastLogin = SYSDATETIME() where Id = '{id}'";
+                updateLastLogin.CommandText = $"update dbo.Users LastLogin = SYSDATETIME() where Id = '{id.Value}'";
                 updateLastLogin.ExecuteNonQuery();
             }
 
             dbConnection.Close();
 
-            return (int)id;
+            return id.Value;
         }
 
         public int Register(string login, string password)
@@ -50,7 +49,7 @@ namespace InstaBotPrototype.Services
 
             var insert = factory.CreateCommand();
             insert.Connection = dbConnection;
-            insert.CommandText = $"insert into table dbo.Users (Login, Password) values ('{login}', '{password}')";
+            insert.CommandText = $"insert into table dbo.Users (Login, Password, RegisterDate) values ('{login}', '{password}', SYSDATETIME())";
 
             dbConnection.Close();
 
