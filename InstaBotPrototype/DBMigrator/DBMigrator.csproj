@@ -43,12 +43,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Migrations\AddLastLoginFieldToUsersTable.cs" />
-    <Compile Include="Migrations\AddRegisterDateFieldToUsersTable.cs" />
-    <Compile Include="Migrations\CreateMigrationsTable.cs" />
-    <Compile Include="Migrations\CreateUsersTable.cs" />
+    <Compile Include="Migrations\M201712050618_AddLastLoginFieldToUsersTable.cs" />
+    <Compile Include="Migrations\M201712051755_AddRegisterDateFieldToUsersTable.cs" />
+    <Compile Include="Migrations\M201711290739_CreateMigrationsTable.cs" />
+    <Compile Include="Migrations\M201711290745_CreateUsersTable.cs" />
     <Compile Include="DBMigration.cs" />
     <Compile Include="IndexerAttribute.cs" />
+    <Compile Include="Migrations\M201712081553_AddEmailColumnToUsersTable.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

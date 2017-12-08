@@ -1,4 +1,5 @@
-﻿using System.Configuration;
+﻿using InstaBotPrototype.Models;
+using System.Configuration;
 using System.Data.Common;
 
 namespace InstaBotPrototype.Services
@@ -8,14 +9,19 @@ namespace InstaBotPrototype.Services
         string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
         DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
 
-        public int Login(string login, string password)
+        public int Login(LoginModel model)
         {
             var dbConnection = factory.CreateConnection();
             dbConnection.ConnectionString = connectionString;
 
             var select = factory.CreateCommand();
             select.Connection = dbConnection;
-            select.CommandText = $"select Id from dbo.Users where Login = '{login}' and Password = '{password}'";
+            select.CommandText = $"select Id from dbo.Users where Login = @login and Password = @password";
+            
+            var login = GetParameter("@login", model.Login);
+            var password = GetParameter("@password", model.Password);
+
+            select.Parameters.AddRange(new[] { login, password });
 
             dbConnection.Open();
 
@@ -31,7 +37,12 @@ namespace InstaBotPrototype.Services
             {
                 var updateLastLogin = factory.CreateCommand();
                 updateLastLogin.Connection = dbConnection;
-                updateLastLogin.CommandText = $"update dbo.Users LastLogin = SYSDATETIME() where Id = '{id.Value}'";
+                updateLastLogin.CommandText = $"update dbo.Users LastLogin = SYSDATETIME() where Id = @id";
+
+                var pId = GetParameter("@id", id.Value);
+
+                updateLastLogin.Parameters.Add(pId);
+
                 updateLastLogin.ExecuteNonQuery();
             }
 
@@ -40,7 +51,7 @@ namespace InstaBotPrototype.Services
             return id.Value;
         }
 
-        public int Register(string login, string password)
+        public int Register(LoginModel model)
         {
             var dbConnection = factory.CreateConnection();
             dbConnection.ConnectionString = connectionString;
@@ -49,11 +60,25 @@ namespace InstaBotPrototype.Services
 
             var insert = factory.CreateCommand();
             insert.Connection = dbConnection;
-            insert.CommandText = $"insert into table dbo.Users (Login, Password, RegisterDate) values ('{login}', '{password}', SYSDATETIME())";
+            insert.CommandText = $"insert into table dbo.Users (Login, Email, Password, RegisterDate) values (@login, @email, @password, SYSDATETIME())";
+
+            var login = GetParameter("@login", model.Login);
+            var email = GetParameter("@email", model.Email);
+            var password = GetParameter("@password", model.Password);
+
+            insert.Parameters.AddRange(new[] { login, email, password });
 
             dbConnection.Close();
 
-            return Login(login, password);
+            return Login(model);
+        }
+
+        DbParameter GetParameter(string name, object value)
+        {
+            var parameter = factory.CreateParameter();
+            parameter.ParameterName = name;
+            parameter.Value = value;
+            return parameter;
         }
     }
 }
