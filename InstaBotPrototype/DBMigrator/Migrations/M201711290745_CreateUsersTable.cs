@@ -1,6 +1,6 @@
 ﻿using System.Data.Common;
 
-namespace DBMigrator
+namespace DBMigrator.Migrations
 {
     [Indexer(201711290745)]
     class M201711290745_CreateUsersTable : DBMigration
