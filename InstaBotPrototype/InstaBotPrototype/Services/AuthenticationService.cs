@@ -37,7 +37,7 @@ namespace InstaBotPrototype.Services
             {
                 var updateLastLogin = factory.CreateCommand();
                 updateLastLogin.Connection = dbConnection;
-                updateLastLogin.CommandText = $"update dbo.Users LastLogin = SYSDATETIME() where Id = @id";
+                updateLastLogin.CommandText = $"update dbo.Users set LastLogin = SYSDATETIME() where Id = @id";
 
                 var pId = GetParameter("@id", id.Value);
 
