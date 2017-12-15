@@ -9,78 +9,89 @@
 <head>
     <title>Instagram Bot settings</title>
     <link rel="stylesheet" type="text/css" href="~/css/styles.css">
+    <link href="https://fonts.googleapis.com/css?family=Lobster+Two" rel="stylesheet">
 </head>
 <body>
+    <div id="authPage">
+        <div class="headerAuth">
+            <button id="btnSignUp" class="btnLogReg">Sign Up</button>
+            <button id="btnLogin" class="btnLogReg">Log in</button>
+        </div>
+        <p class="greeting">
+            <span id="welcome">Welcome to the IntelliGram service</span>
+        </p>
+        
+
+        <div class="modal" id="modalLoginWindow">
+            <form id="modalLogin" class="modalWindow">
+                <span class="close" id="closeLogin">&times</span>
+                <p class="modalTitle">IntelliGram</p>
+                <input class="login" type="text" placeholder="Login" required /><br />
+                <input class="pass" type="password" placeholder="Password" required />
+                <input class="submitBtn" type="submit" value="Log In" />
+            </form>
+        </div>
+
+        <div class="modal" id="modalSignUpWindow">
+            <form id="modalSignUp" class="modalWindow">
+                <span class="close" id="closeSignUp">&times</span>
+                <p class="modalTitle">IntelliGram</p>
+                <input class="login" type="text" placeholder="Enter your login" required /><br />
+                <input class="pass" type="password" placeholder="Enter your password" required />
+                <input class="passConfirm" type="password" placeholder="Confirm your password" required />
+                <input class="email" type="email" placeholder="Enter your email" required />
+                <input class="submitBtn" type="submit" value="Sign Up" />
+            </form>
+        </div>
+    </div>
+    <div id="configPage">
         <div class="page-container">
-        <div class="header"><h1>Instagram bot admin page</h1></div>
-        <div class="content-container">
-            <div class="content-left"></div>
-            <div class="content-center">
-                <div class="block">
-                    <form id="config_form">
+            <div class="header"><p class="configTitle" >Instagram bot admin page</p></div>
+            <div class="content-container">
+                <div class="content-left"></div>
+                <div class="content-center">
+                    <div class="block">
+                        <form id="config_form">
+                            <div>
+                                <label>Instagram username</label><input name="instaUsername" type="text" value="" placeholder="Johnsmith" />
+                            </div>
+                            <div>
+                                <label>Instagram password</label><input name="instaPassword" type="text" value="" placeholder="Password" />
+                            </div>
+                            <div>
+                                <label>Telegram username</label><input name="telegramUsername" type="text" value="" placeholder="john11" />
+                            </div>
+                            <div>
+                                <label>Tags</label><input name="tags" type="text" value="" placeholder="kittens, cats" />
+                            </div>
+                            <div>
+                                <label>Topics</label><input name="topics" type="text" value="" placeholder="nature, lake" />
+                            </div>
+                        </form>
                         <div>
-                            <label>instagram username</label><input name="instaUsername" type="text" value="" placeholder="Johnsmith" />
+                            <button id="get_config" class="submitBtn">Get configuration</button>
+                            <button id="save_config" class="submitBtn">Save configuration</button>
                         </div>
-                        <div>
-                            <label>instagram password</label><input name="instaPassword" type="text" value="" placeholder="Password" />
-                        </div>
-                        <div>
-                            <label>telegram username</label><input name="telegramUsername" type="text" value="" placeholder="john11" />
-                        </div>
-                        <div>
-                            <label>tags</label><input name="tags" type="text" value="" placeholder="kittens, cats" />
-                        </div>
-                        <div>
-                            <label>topics</label><input name="topics" type="text" value="" placeholder="nature, lake" />
-                        </div>
-                    </form>
-                    <div>
-                        <button id="get_config">Get configuration</button>
-                        <button id="save_config">Save configuration</button>
+                        <div id="ajax_result"></div>
                     </div>
-                    <div id="ajax_result"></div>
+                    <div class="block">
+                        <h3>Statistics</h3>
+                        <div>Processed <span id="processed_posts">1012</span> posts</div>
+                        <div>Matched 21 photos</div>
+                        <div>Matched tags: 12</div>
+                        <div>Matched topics: 9</div>
+                    </div>
                 </div>
-                <div class="block">
-                    <h3>Statistics</h3>
-                    <div>Processed <span id="processed_posts">1012</span> posts</div>
-                    <div>Matched 21 photos</div>
-                    <div>Matched tags: 12</div>
-                    <div>Matched topics: 9</div>
-                </div>
+                <div class="content-right"></div>
             </div>
-            <div class="content-right"></div>
+            <div class="footer">© 2017 IntelliGram-D</div>
         </div>
-        <div class="footer">© 2017 IntelliGram-D</div>
-        </div>
+    </div>
+        
     
 
-<script src="js/jquery-3.2.1.min.js"></script>
-<script>
-    $(function() {//jquery magic to run script after page fully loaded
-        $("#get_config").click(function(e) {
-            e.preventDefault();
-            $.get("/api/configuration").done(function (data) {                
-                let values = data;
-                for (var fieldName in values) {
-                    if (values.hasOwnProperty(fieldName)) {                        
-                        $('#config_form input[name=' + fieldName + ']').val(values[fieldName]);//magic - putting values into corresponding fields
-                    }
-                };
-                
-                
-            });
-        });
-        $("#save_config").click(function(e) {
-            e.preventDefault();
-            let data = $("#config_form").serialize();//magic - gathering data from fields into js object, ready for sending via post
-            $.post("/api/configuration", data).done(function(response, status, xhm) {
-                console.log(response);
-                $("#ajax_result").text("Save status: " + status);
-            });
-
-        });
-    });
-</script>
+<script src="~/js/jquery-3.2.1.min.js"></script>
+<script src="~/js/script.js" type="text/javascript"></script>
 
 </body>
 </html>
