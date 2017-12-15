@@ -29,6 +29,7 @@ var modalSignUp = document.getElementById("modalSignUpWindow");
 var spanExitLogin = document.getElementsByClassName("close")[0];
 var spanExitSignUp = document.getElementsByClassName("close")[1];
 var loginForm = document.getElementById("modalLogin");
+var signUpForm = document.getElementById("modalSignUp");
 var authPage = document.getElementById("authPage");
 var configPage = document.getElementById("configPage");
 btnLogin.onclick = function () {
@@ -44,6 +45,11 @@ spanExitSignUp.onclick = function () {
     modalSignUp.style.display = "none";
 }
 loginForm.onsubmit = function (event) {
+    event.preventDefault();
+    configPage.style.display = "block";
+    authPage.style.display = "none";
+}
+signUpForm.onsubmit = function (event) {
     event.preventDefault();
     configPage.style.display = "block";
     authPage.style.display = "none";
