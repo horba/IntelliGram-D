@@ -18,8 +18,8 @@ namespace InstaBotPrototype.Services
             select.Connection = dbConnection;
             select.CommandText = $"select Id from dbo.Users where Login = @login and Password = @password";
             
-            var login = GetParameter("@login", model.Login);
-            var password = GetParameter("@password", model.Password);
+            var login = CreateParameter("@login", model.Login);
+            var password = CreateParameter("@password", model.Password);
 
             select.Parameters.AddRange(new[] { login, password });
 
@@ -39,7 +39,7 @@ namespace InstaBotPrototype.Services
                 updateLastLogin.Connection = dbConnection;
                 updateLastLogin.CommandText = $"update dbo.Users set LastLogin = SYSDATETIME() where Id = @id";
 
-                var pId = GetParameter("@id", id.Value);
+                var pId = CreateParameter("@id", id.Value);
 
                 updateLastLogin.Parameters.Add(pId);
 
@@ -62,9 +62,9 @@ namespace InstaBotPrototype.Services
             insert.Connection = dbConnection;
             insert.CommandText = $"insert into table dbo.Users (Login, Email, Password, RegisterDate) values (@login, @email, @password, SYSDATETIME())";
 
-            var login = GetParameter("@login", model.Login);
-            var email = GetParameter("@email", model.Email);
-            var password = GetParameter("@password", model.Password);
+            var login = CreateParameter("@login", model.Login);
+            var email = CreateParameter("@email", model.Email);
+            var password = CreateParameter("@password", model.Password);
 
             insert.Parameters.AddRange(new[] { login, email, password });
 
@@ -73,7 +73,7 @@ namespace InstaBotPrototype.Services
             return Login(model);
         }
 
-        DbParameter GetParameter(string name, object value)
+        DbParameter CreateParameter(string name, object value)
         {
             var parameter = factory.CreateParameter();
             parameter.ParameterName = name;
