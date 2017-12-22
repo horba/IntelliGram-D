@@ -4,10 +4,10 @@ using System.Data.Common;
 
 namespace InstaBotPrototype.Services
 {
-    public class AuthenticationService
+    public class AuthenticationService: IAuthenticationService
     {
-        string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
-        DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
+        string connectionString = @"Data Source=MYDESKTOP\SQLEXPRESS;Initial Catalog = InstaBot; Integrated Security = True";
+        DbProviderFactory factory = DbProviderFactories.GetFactory("System.Data.SqlClient");
 
         public int Login(LoginModel model)
         {
@@ -17,38 +17,32 @@ namespace InstaBotPrototype.Services
             var select = factory.CreateCommand();
             select.Connection = dbConnection;
             select.CommandText = $"select Id from dbo.Users where Login = @login and Password = @password";
-            
+
             var login = CreateParameter("@login", model.Login);
             var password = CreateParameter("@password", model.Password);
 
             select.Parameters.AddRange(new[] { login, password });
 
             dbConnection.Open();
-
+            int id = -1;
             var reader = select.ExecuteReader();
-            reader.Read();
-            var id = reader.GetValue(0) as int?;
-
-            if (!id.HasValue)
+            if (reader.HasRows)
             {
-                id = -1;
+                reader.Read();
+                id = reader.GetInt32(0);
             }
-            else
-            {
-                var updateLastLogin = factory.CreateCommand();
-                updateLastLogin.Connection = dbConnection;
-                updateLastLogin.CommandText = $"update dbo.Users set LastLogin = SYSDATETIME() where Id = @id";
+            /*var updateLastLogin = factory.CreateCommand();
+             updateLastLogin.Connection = dbConnection;
+             updateLastLogin.CommandText = $"update dbo.Users SET LastLogin = SYSDATETIME() where Id = @id";
 
-                var pId = CreateParameter("@id", id.Value);
+             var pId = GetParameter("@id", id);
 
-                updateLastLogin.Parameters.Add(pId);
+             updateLastLogin.Parameters.Add(pId);
 
-                updateLastLogin.ExecuteNonQuery();
-            }
-
+             updateLastLogin.ExecuteNonQuery();*/
+            reader.Close();
             dbConnection.Close();
-
-            return id.Value;
+            return id;
         }
 
         public int Register(LoginModel model)
