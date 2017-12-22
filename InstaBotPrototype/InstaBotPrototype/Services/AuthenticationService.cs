@@ -6,8 +6,8 @@ namespace InstaBotPrototype.Services
 {
     public class AuthenticationService: IAuthenticationService
     {
-        string connectionString = @"Data Source=MYDESKTOP\SQLEXPRESS;Initial Catalog = InstaBot; Integrated Security = True";
-        DbProviderFactory factory = DbProviderFactories.GetFactory("System.Data.SqlClient");
+        string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
+        DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
 
         public int Login(LoginModel model)
         {
@@ -24,25 +24,31 @@ namespace InstaBotPrototype.Services
             select.Parameters.AddRange(new[] { login, password });
 
             dbConnection.Open();
-            int id = -1;
+
             var reader = select.ExecuteReader();
-            if (reader.HasRows)
+            reader.Read();
+            var id = reader.GetValue(0) as int?;
+
+            if (!id.HasValue)
             {
-                reader.Read();
-                id = reader.GetInt32(0);
+                id = -1;
             }
-            /*var updateLastLogin = factory.CreateCommand();
-             updateLastLogin.Connection = dbConnection;
-             updateLastLogin.CommandText = $"update dbo.Users SET LastLogin = SYSDATETIME() where Id = @id";
+            else
+            {
+                var updateLastLogin = factory.CreateCommand();
+                updateLastLogin.Connection = dbConnection;
+                updateLastLogin.CommandText = $"update dbo.Users set LastLogin = SYSDATETIME() where Id = @id";
 
-             var pId = GetParameter("@id", id);
+                var pId = CreateParameter("@id", id.Value);
 
-             updateLastLogin.Parameters.Add(pId);
+                updateLastLogin.Parameters.Add(pId);
 
-             updateLastLogin.ExecuteNonQuery();*/
-            reader.Close();
+                updateLastLogin.ExecuteNonQuery();
+            }
+
             dbConnection.Close();
-            return id;
+
+            return id.Value;
         }
 
         public int Register(LoginModel model)
