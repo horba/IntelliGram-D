@@ -16,8 +16,8 @@ namespace InstaBotPrototype.Controllers
         public IActionResult Login (LoginModel loginModel)
         {
             var loginResult = _authenticationService.Login(loginModel);
-            if (loginResult != -1)
-                return new ObjectResult(new { userID = loginResult});
+            if (loginResult != null)
+                return new ObjectResult(new { sessionID = loginResult});
             else {
                 ObjectResult result = new ObjectResult(new { errorMessage = "Wrong login or password" })
                 {
@@ -30,8 +30,8 @@ namespace InstaBotPrototype.Controllers
         public IActionResult Register(LoginModel loginModel)
         {
             var registerResult = _authenticationService.Register(loginModel);
-            if (registerResult != -1)
-                return new ObjectResult(new { userID = registerResult});
+            if (registerResult != null)
+                return new ObjectResult(new { sessionID = registerResult});
             else
             {
                 ObjectResult result = new ObjectResult(new { errorMessage = "Something wrong has happened during registartion"})

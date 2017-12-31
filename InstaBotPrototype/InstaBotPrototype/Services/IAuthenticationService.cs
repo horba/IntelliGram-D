@@ -1,9 +1,10 @@
-﻿using InstaBotPrototype.Models;
+﻿using System;
+using InstaBotPrototype.Models;
 namespace InstaBotPrototype.Services
 {
     public interface IAuthenticationService
     {
-        int Login(LoginModel model);
-        int Register(LoginModel model);
+        String Login(LoginModel model);
+        String Register(LoginModel model);
     }
 }
