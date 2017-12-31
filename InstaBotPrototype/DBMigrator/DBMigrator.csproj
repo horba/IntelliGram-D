@@ -50,6 +50,7 @@
     <Compile Include="DBMigration.cs" />
     <Compile Include="IndexerAttribute.cs" />
     <Compile Include="Migrations\M201712081553_AddEmailColumnToUsersTable.cs" />
+    <Compile Include="Migrations\M201712310814_CreateSessionsTable.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
