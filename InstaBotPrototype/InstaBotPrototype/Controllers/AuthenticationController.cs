@@ -1,21 +1,57 @@
 ﻿using InstaBotPrototype.Models;
 using Microsoft.AspNetCore.Mvc;
+using InstaBotPrototype.Services;
+using System.Net;
 
 namespace InstaBotPrototype.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     public class AuthenticationController : Controller
     {
-        [HttpGet]
-        IActionResult Login([FromBody]LoginModel loginModel)
+        private readonly IAuthenticationService _authenticationService;
+        public AuthenticationController(IAuthenticationService service)
         {
-            return Ok();
+            _authenticationService = service;
         }
-
         [HttpPost]
-        IActionResult Register([FromBody]LoginModel loginModel)
+        public IActionResult Login(LoginModel loginModel)
         {
-            return Ok();
+            if (ModelState.IsValid)
+            {
+                var loginResult = _authenticationService.Login(loginModel);
+                if (loginResult != null)
+                    return new ObjectResult(new { sessionID = loginResult });
+                else
+                {
+                    ObjectResult result = new ObjectResult(new { errorMessage = "Wrong login or password" })
+                    {
+                        StatusCode = (int)HttpStatusCode.NotFound
+                    };
+                    return result;
+                }
+            }
+            else {
+                ObjectResult result = new ObjectResult(new { errorMessage = "Invalid input" })
+                {
+                    StatusCode = (int)HttpStatusCode.BadRequest
+                };
+                return result;
+            }
+        }
+        [HttpPost]
+        public IActionResult Register(LoginModel loginModel)
+        {
+            var registerResult = _authenticationService.Register(loginModel);
+            if (registerResult != null)
+                return new ObjectResult(new { sessionID = registerResult });
+            else
+            {
+                ObjectResult result = new ObjectResult(new { errorMessage = "Something wrong has happened during registartion" })
+                {
+                    StatusCode = (int)HttpStatusCode.NotFound
+                };
+                return result;
+            }
         }
     }
 }

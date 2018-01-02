@@ -1,57 +1,49 @@
-﻿using InstaBotPrototype.Models;
+﻿using System;
+using InstaBotPrototype.Models;
 using System.Configuration;
 using System.Data.Common;
 
 namespace InstaBotPrototype.Services
 {
-    public class AuthenticationService
+    public class AuthenticationService : IAuthenticationService
     {
         string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
         DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
 
-        public int Login(LoginModel model)
+        public String Login(LoginModel model)
         {
-            var dbConnection = factory.CreateConnection();
-            dbConnection.ConnectionString = connectionString;
-
-            var select = factory.CreateCommand();
-            select.Connection = dbConnection;
-            select.CommandText = $"select Id from dbo.Users where Login = @login and Password = @password";
-            
-            var login = CreateParameter("@login", model.Login);
-            var password = CreateParameter("@password", model.Password);
-
-            select.Parameters.AddRange(new[] { login, password });
-
-            dbConnection.Open();
-
-            var reader = select.ExecuteReader();
-            reader.Read();
-            var id = reader.GetValue(0) as int?;
-
-            if (!id.HasValue)
+            Guid? sessionID = null;
+            using (var dbConnection = factory.CreateConnection())
             {
-                id = -1;
+                dbConnection.ConnectionString = connectionString;
+                dbConnection.Open();
+                var selectID = factory.CreateCommand();
+                selectID.Connection = dbConnection;
+                selectID.CommandText = $"select Id from dbo.Users where Login = @login and Password = @password";
+                var pLogin = CreateParameter("@login", model.Login);
+                var pPassword = CreateParameter("@password", model.Password);
+                selectID.Parameters.AddRange(new[] { pLogin, pPassword });
+                var reader = selectID.ExecuteReader();
+                if (reader.HasRows)
+                {
+                    reader.Read();
+                    int id = reader.GetInt32(0);
+                    reader.Close();
+                    sessionID = Guid.NewGuid();
+                    var updateLastLogin = factory.CreateCommand();
+                    updateLastLogin.Connection = dbConnection;
+                    updateLastLogin.CommandText = $"INSERT INTO dbo.Sessions (UserId,SessionId) VALUES (@id,@sessionID)";
+                    var pId = CreateParameter("@id", id);
+                    var pSessionId = CreateParameter("@sessionID", sessionID);
+                    updateLastLogin.Parameters.Add(pId);
+                    updateLastLogin.Parameters.Add(pSessionId);
+                    updateLastLogin.ExecuteNonQuery();
+                }
             }
-            else
-            {
-                var updateLastLogin = factory.CreateCommand();
-                updateLastLogin.Connection = dbConnection;
-                updateLastLogin.CommandText = $"update dbo.Users set LastLogin = SYSDATETIME() where Id = @id";
-
-                var pId = CreateParameter("@id", id.Value);
-
-                updateLastLogin.Parameters.Add(pId);
-
-                updateLastLogin.ExecuteNonQuery();
-            }
-
-            dbConnection.Close();
-
-            return id.Value;
+            return sessionID?.ToString();
         }
 
-        public int Register(LoginModel model)
+        public String Register(LoginModel model)
         {
             var dbConnection = factory.CreateConnection();
             dbConnection.ConnectionString = connectionString;

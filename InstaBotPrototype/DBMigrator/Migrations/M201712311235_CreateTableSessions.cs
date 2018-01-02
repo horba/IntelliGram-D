@@ -10,11 +10,11 @@ namespace DBMigrator.Migrations
             ApplyCommand.CommandText =
             @"create table dbo.Sessions 
 					(
-						Id int NOT NULL, 
+						UserId int NOT NULL, 
 						SessionId uniqueidentifier NOT NULL, 
 						LoginTime DateTime DEFAULT CURRENT_TIMESTAMP, 
-						CONSTRAINT PK_Sessions PRIMARY KEY (Id,LoginTime), 
-						CONSTRAINT FK_Sessions FOREIGN KEY (Id)     
+						CONSTRAINT PK_Sessions PRIMARY KEY (UserId,LoginTime), 
+						CONSTRAINT FK_Sessions FOREIGN KEY (UserId)     
 						REFERENCES dbo.Users (Id)     
 						ON DELETE CASCADE    
 						ON UPDATE CASCADE
