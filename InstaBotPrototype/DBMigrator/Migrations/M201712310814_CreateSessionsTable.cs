@@ -7,7 +7,19 @@ namespace DBMigrator.Migrations
     {
         public M201712310814_CreateSessionsTable(object factory, object connection) : base(factory as DbProviderFactory, connection as DbConnection)
         {
-            ApplyCommand.CommandText = "create table dbo.Sessions (Id int identity primary key, UserId int FOREIGN KEY REFERENCES Users(Id), CreationDate DateTime, LastActive DateTime)";
+            ApplyCommand.CommandText =
+            @"create table dbo.Sessions 
+					(
+						UserId int NOT NULL, 
+						SessionId uniqueidentifier NOT NULL, 
+						LoginTime DateTime DEFAULT CURRENT_TIMESTAMP, 
+                        LastActive DateTime DEFAULT CURRENT_TIMESTAMP,
+						CONSTRAINT PK_Sessions PRIMARY KEY (UserId,LoginTime), 
+						CONSTRAINT FK_Sessions_Users FOREIGN KEY (UserId)     
+						REFERENCES dbo.Users (Id)     
+						ON DELETE CASCADE    
+						ON UPDATE CASCADE
+			);";
             ReverseCommand.CommandText = "drop table dbo.Sessions";
         }
     }

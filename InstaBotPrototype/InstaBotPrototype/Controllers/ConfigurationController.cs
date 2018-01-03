@@ -77,11 +77,9 @@ namespace InstaBotPrototype.Controllers
             DbConnection conn = null;
             try
             {
-                var id = Request.Cookies["Id"];
+                var id = Request.Cookies["sessionID"];
                 if (id != null)
                 {
-                    var cookieId = Convert.ToInt32(Request.Cookies["Id"]);
-
                     conn = factory.CreateConnection();
                     conn.ConnectionString = connectionString;
 
@@ -90,7 +88,7 @@ namespace InstaBotPrototype.Controllers
                     param.Value = id;
 
                     var check = factory.CreateCommand();
-                    check.CommandText = "select count(Id) from dbo.Sessions where Id = @Id";
+                    check.CommandText = "select count(SessionId) from dbo.Sessions where SessionId = @Id";
                     check.Parameters.Add(param);
                     check.Connection = conn;
 

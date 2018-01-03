@@ -12,12 +12,19 @@ $("#closeSignUp").click(function () {
     $("#signUpModal").css("display", "none");
 });
 var $loginForm = $("#loginForm");
-$("#loginSubmit").click(function (e) {
-    e.preventDefault();
+$("#loginSubmit").click(function (event) {
+    clickHandler(event, "#loginError", $loginForm);
+});
+var $signUpForm = $("#signUpForm");
+$("#signUpSubmit").click(function (event) {
+    clickHandler(event, "#signUpError", $signUpForm );
+});
+function clickHandler(event,errorDiv,$form) {
+    event.preventDefault();
     $.ajax({
-        type: $loginForm.attr('method'),
-        url: $loginForm.attr('action'),
-        data: $loginForm.serialize(),
+        type: $form.attr('method'),
+        url: $form.attr('action'),
+        data: $form.serialize(),
         dataType: "json",
         success: function (response) {
             document.cookie = "sessionID=" + response.sessionID;
@@ -25,7 +32,7 @@ $("#loginSubmit").click(function (e) {
             $("#authPage").css("display", "none");
         },
         error: function (response) {
-            $("#loginError").text(response.responseJSON.errorMessage);
+            $(errorDiv).text(response.responseJSON.errorMessage);
         }
     });
-});
+}

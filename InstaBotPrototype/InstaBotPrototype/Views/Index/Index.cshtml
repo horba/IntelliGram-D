@@ -1,4 +1,4 @@
-﻿@model InstaBotPrototype.Models.LoginModel
+﻿
 @{
     Layout = null;
 }
@@ -23,61 +23,62 @@
 
 
         <div class="modal" id="loginModal">
-            @using (@Html.BeginForm("Login", "Authentication", FormMethod.Post, new { id = "loginForm", @class = "modal-window" }))
-            {
+            <form action="/api/Authentication/Login" class="modal-window" id="loginForm" method="post">
                 <span class="close" id="closeLogin">&times</span>
                 <p class="modal-title">IntelliGram</p>
-                @Html.TextBoxFor(m => m.Login, new { @class = "form-field", placeholder = "Login....."});
-                @Html.TextBoxFor(m => m.Password, new { @class = "form-field", placeholder = "Password......" });
+                <input class="form-field" id="Login" name="Login" placeholder="Login....." required type="text" value="" />
+                <input class="form-field" id="Password" name="Password" placeholder="Password......" required type="text" value="" />                
                 <div class="error-message" id="loginError"></div>
-                <input class ="submit-button" id="loginSubmit" type="submit" value="Login">
-            }
+                <input class="submit-button" id="loginSubmit" type="submit" value="Login">
+            </form>
         </div>
        
         <div class="modal" id="signUpModal">
-            <form id="signUpForm" class="modal-window">
+            <form action="/api/Authentication/Register" class="modal-window" id="signUpForm" method="post">
                 <span class="close" id="closeSignUp">&times</span>
                 <p class="modal-title">IntelliGram</p>
-                <input class="form-field" type="text" placeholder="Enter your login" required /><br />
-                <input class="form-field" type="password" placeholder="Enter your password" required />
+                <input class="form-field" type="text" placeholder="Enter your login" name="Login" required /><br />
+                <input class="form-field" type="password" placeholder="Enter your password" name="Password" required />
                 <input class="form-field" type="password" placeholder="Confirm your password" required />
-                <input class="form-field" type="email" placeholder="Enter your email" required />
-                <input class="submit-button" type="submit" value="Sign Up" />
+                <input class="form-field" type="email" placeholder="Enter your email" name="Email" required />
+                <div class="error-message" id="signUpError"></div>
+                <input class="submit-button" id="signUpSubmit" type="submit" value="Sign Up" />
             </form>
         </div>
     </div>
-    <div id="configPage">
-        <div class="page-container">
+   
+    <div class="page-container" id="configPage">
+            <div class="header"><h1>Instagram bot admin page</h1></div>
+            <div class="content-container">
+                <div class="content-left"></div>
 
-        <div class="header"><h1>Instagram bot admin page</h1></div>
-        <div class="content-container">
-            <div class="content-left"></div>
-            <div class="content-center">
-                <div class="block">
-                    <form id="config_form">
-                        <div>
-                            <label>instagram username</label><input name="instaUsername" type="text" value="" placeholder="Johnsmith" />
-                        </div>
-                        <div>
-                            <label>instagram password</label><input name="instaPassword" type="text" value="" placeholder="Password" />
-                        </div>
-                        <div>
-                            <label>telegram username</label>
-                            <input name="telegramUsername" type="text" value="" placeholder="john11" />
-                            <a href="https://t.me/isdTestBot">Go to the telegram bot</a>
-                            <label id="labelNumber" />
-                            <script>
-                                document.getElementById('labelNumber').innerHTML = 100000000000000000 * Math.random();
-                            </script>
-                        </div>
-                        <div>
-                            <label>tags</label><input name="tags" type="text" value="" placeholder="kittens, cats" />
-                        </div>
-                        <div>
-                            <button id="getConfig" class="submit-button">Get configuration</button>
-                            <button id="saveConfig" class="submit-button">Save configuration</button>
-                        </div>
-                        <div id="ajaxResult"></div>
+                <div class="content-center">
+                    <div class="block">
+                        <form id="configForm">
+                            <div>
+                                <label class ="form-left" >instagram username</label><input name="instaUsername" type="text" value="" placeholder="Johnsmith" />
+                            </div>
+                            <div>
+                                <label class ="form-left" >instagram password</label><input name="instaPassword" type="text" value="" placeholder="Password" />
+                            </div>
+                            <div>
+                                <label class ="form-left">telegram username</label><input name="telegramUsername" type="text" value="" placeholder="Johnsmith" />
+                            </div>
+                            <div>
+                                <a class ="form-left" href="https://t.me/isdTestBot">Go to the telegram bot</a><label id="labelNumber"/>
+                                    <script>
+                                        document.getElementById('labelNumber').innerHTML =100000000000000000 * Math.random();
+                                    </script>
+                            </div>
+                            <div>
+                                <label class="form-left">tags</label><input name="tags" type="text" value="" placeholder="kittens, cats" />
+                            </div>
+                            <div>
+                                <button id="getConfig" class="submit-button">Get configuration</button>
+                                <button id="saveConfig" class="submit-button">Save configuration</button>
+                            </div>
+                            <div id="ajaxResult"></div>
+                        </form>
                     </div>
                     <div class="block">
                         <h3>Statistics</h3>
@@ -91,7 +92,6 @@
             </div>
             <div class="footer">© 2017 IntelliGram-D</div>
         </div>
-    </div>
 
 
 

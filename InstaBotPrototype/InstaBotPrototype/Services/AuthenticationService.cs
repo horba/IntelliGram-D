@@ -6,11 +6,10 @@ using System.Data.Common;
 namespace InstaBotPrototype.Services
 {
     public class AuthenticationService : IAuthenticationService
-
     {
-        string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
+        String connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
         DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
-
+      
         public String Login(LoginModel model)
         {
             Guid? sessionID = null;
@@ -21,9 +20,9 @@ namespace InstaBotPrototype.Services
                 var selectID = factory.CreateCommand();
                 selectID.Connection = dbConnection;
                 selectID.CommandText = $"select Id from dbo.Users where Login = @login and Password = @password";
-                var pLogin = CreateParameter("@login", model.Login);
-                var pPassword = CreateParameter("@password", model.Password);
-                selectID.Parameters.AddRange(new[] { pLogin, pPassword });
+                var login = CreateParameter("@login", model.Login);
+                var password = CreateParameter("@password", model.Password);
+                selectID.Parameters.AddRange(new[] { login, password });
                 var reader = selectID.ExecuteReader();
                 if (reader.HasRows)
                 {
@@ -53,14 +52,14 @@ namespace InstaBotPrototype.Services
 
             var insert = factory.CreateCommand();
             insert.Connection = dbConnection;
-            insert.CommandText = $"insert into table dbo.Users (Login, Email, Password, RegisterDate) values (@login, @email, @password, SYSDATETIME())";
+            insert.CommandText = $"INSERT INTO dbo.Users (Login, Email, Password, RegisterDate) VALUES (@login, @email, @password, SYSDATETIME())";
 
             var login = CreateParameter("@login", model.Login);
             var email = CreateParameter("@email", model.Email);
             var password = CreateParameter("@password", model.Password);
 
             insert.Parameters.AddRange(new[] { login, email, password });
-
+            insert.ExecuteNonQuery();
             dbConnection.Close();
 
             return Login(model);
