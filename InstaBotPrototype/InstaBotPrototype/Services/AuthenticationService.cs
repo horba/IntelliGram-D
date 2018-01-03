@@ -4,7 +4,7 @@ using System.Data.Common;
 
 namespace InstaBotPrototype.Services
 {
-    public class AuthenticationService
+    public class AuthenticationService: IAuthenticationService
     {
         string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
         DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
@@ -17,7 +17,7 @@ namespace InstaBotPrototype.Services
             var select = factory.CreateCommand();
             select.Connection = dbConnection;
             select.CommandText = $"select Id from dbo.Users where Login = @login and Password = @password";
-            
+
             var login = CreateParameter("@login", model.Login);
             var password = CreateParameter("@password", model.Password);
 
