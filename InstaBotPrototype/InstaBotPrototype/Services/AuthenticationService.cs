@@ -6,6 +6,7 @@ using System.Data.Common;
 namespace InstaBotPrototype.Services
 {
     public class AuthenticationService : IAuthenticationService
+
     {
         string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
         DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);

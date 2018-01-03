@@ -9,46 +9,34 @@ namespace InstaBotPrototype.Controllers
     public class AuthenticationController : Controller
     {
         private readonly IAuthenticationService _authenticationService;
-        public AuthenticationController(IAuthenticationService service)
-        {
+        public AuthenticationController (IAuthenticationService service) {
             _authenticationService = service;
-        }
+        }        
         [HttpPost]
-        public IActionResult Login(LoginModel loginModel)
+        public IActionResult Login (LoginModel loginModel)
         {
-            if (ModelState.IsValid)
-            {
-                var loginResult = _authenticationService.Login(loginModel);
-                if (loginResult != null)
-                    return new ObjectResult(new { sessionID = loginResult });
-                else
-                {
-                    ObjectResult result = new ObjectResult(new { errorMessage = "Wrong login or password" })
-                    {
-                        StatusCode = (int)HttpStatusCode.NotFound
-                    };
-                    return result;
-                }
-            }
+            var loginResult = _authenticationService.Login(loginModel);
+            if (loginResult != null)
+                return new ObjectResult(new { sessionID = loginResult});
             else {
-                ObjectResult result = new ObjectResult(new { errorMessage = "Invalid input" })
+                ObjectResult result = new ObjectResult(new { errorMessage = "Wrong login or password" })
                 {
-                    StatusCode = (int)HttpStatusCode.BadRequest
+                    StatusCode = (int) HttpStatusCode.NotFound
                 };
                 return result;
-            }
+            }       
         }
         [HttpPost]
         public IActionResult Register(LoginModel loginModel)
         {
             var registerResult = _authenticationService.Register(loginModel);
             if (registerResult != null)
-                return new ObjectResult(new { sessionID = registerResult });
+                return new ObjectResult(new { sessionID = registerResult});
             else
             {
-                ObjectResult result = new ObjectResult(new { errorMessage = "Something wrong has happened during registartion" })
+                ObjectResult result = new ObjectResult(new { errorMessage = "Something wrong has happened during registartion"})
                 {
-                    StatusCode = (int)HttpStatusCode.NotFound
+                    StatusCode = (int) HttpStatusCode.NotFound
                 };
                 return result;
             }
