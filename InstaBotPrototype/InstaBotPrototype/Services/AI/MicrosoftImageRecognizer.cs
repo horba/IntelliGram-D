@@ -3,14 +3,15 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using System.Web.Configuration;
 using System.Web.Script.Serialization;
 
 namespace InstaBotPrototype.Services.AI
 {
     public class MicrosoftImageRecognizer : ImageRecognizer
     {
-        const string subscriptionKey = "9130b53bc6c846979760aed320a58e6b";
-        const string uriBase = "https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/analyze";
+        string subscriptionKey = WebConfigurationManager.OpenWebConfiguration(null).AppSettings.Settings["MicrosoftSubscriptionKey"].Value;
+        string uriBase = WebConfigurationManager.OpenWebConfiguration(null).AppSettings.Settings["MicrosoftUriBase"].Value;
 
         public override IEnumerable<string> RecognizeTopic(byte[] imageBytes) => RecognizeTopicAsync(imageBytes).Result;
         public override IEnumerable<string> RecognizeTopic(string imageFilePath) => RecognizeTopicAsync(GetImageAsByteArray(imageFilePath)).Result;
@@ -54,6 +55,7 @@ namespace InstaBotPrototype.Services.AI
         {
             public Description description;
             public string requestId;
+            public Metadata metadata;
 
             public class Description
             {
