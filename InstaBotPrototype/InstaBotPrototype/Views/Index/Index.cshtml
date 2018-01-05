@@ -13,45 +13,45 @@
 </head>
 <body>
     <div id="authPage">
-        <div class="headerAuth">
-            <button id="btnSignUp" class="btnLogReg">Sign Up</button>
-            <button id="btnLogin" class="btnLogReg">Log in</button>
+        <div class="header-auth">
+            <button id="btnSignup" class="btn-log-reg">Sign Up</button>
+            <button id="btnLogin" class="btn-log-reg">Log in</button>
         </div>
         <p class="greeting">
-            <span id="welcome">Welcome to the IntelliGram service</span>
+            <span class="welcome">Welcome to the IntelliGram service</span>
         </p>
         
 
-        <div class="modal" id="modalLoginWindow">
-            <form id="modalLogin" class="modalWindow">
+        <div class="modal-backgroud" id="loginPopup">
+            <form id="modalLogin" class="modal-window">
                 <span class="close" id="closeLogin">&times</span>
-                <p class="modalTitle">IntelliGram</p>
-                <input class="login" type="text" placeholder="Login" required /><br />
-                <input class="pass" type="password" placeholder="Password" required />
-                <input class="submitBtn" type="submit" value="Log In" />
+                <p class="modal-title">IntelliGram</p>
+                <input class="modal-input" type="text" placeholder="Login" required />
+                <input class="modal-input" type="password" placeholder="Password" required />
+                <input class="submit-btn" type="submit" value="Log In" />
             </form>
         </div>
 
-        <div class="modal" id="modalSignUpWindow">
-            <form id="modalSignUp" class="modalWindow">
-                <span class="close" id="closeSignUp">&times</span>
-                <p class="modalTitle">IntelliGram</p>
-                <input class="login" type="text" placeholder="Enter your login" required /><br />
-                <input class="pass" type="password" placeholder="Enter your password" required />
-                <input class="passConfirm" type="password" placeholder="Confirm your password" required />
-                <input class="email" type="email" placeholder="Enter your email" required />
-                <input class="submitBtn" type="submit" value="Sign Up" />
+        <div class="modal-backgroud" id="signupPopup">
+            <form id="modalSignup" class="modal-window">
+                <span class="close" id="closeSignup">&times</span>
+                <p class="modal-title">IntelliGram</p>
+                <input class="modal-input" type="text" placeholder="Enter your login" required />
+                <input class="modal-input" type="password" placeholder="Enter your password" required />
+                <input class="modal-input" type="password" placeholder="Confirm your password" required />
+                <input class="modal-input" type="email" placeholder="Enter your email" required />
+                <input class="submit-btn" type="submit" value="Sign Up" />
             </form>
         </div>
     </div>
-    <div id="configPage">
+    <div class="config-page" id="configPage">
         <div class="page-container">
-            <div class="header"><p class="configTitle" >Instagram bot admin page</p></div>
+            <div class="header"><p class="config-title" >Instagram bot admin page</p></div>
             <div class="content-container">
                 <div class="content-left"></div>
                 <div class="content-center">
                     <div class="block">
-                        <form id="config_form">
+                        <form id="configForm">
                             <div>
                                 <label>Instagram username</label><input name="instaUsername" type="text" value="" placeholder="Johnsmith" />
                             </div>
@@ -68,15 +68,15 @@
                                 <label>Topics</label><input name="topics" type="text" value="" placeholder="nature, lake" />
                             </div>
                         </form>
-                        <div>
-                            <button id="get_config" class="submitBtn">Get configuration</button>
-                            <button id="save_config" class="submitBtn">Save configuration</button>
+                        <div class="get-save-buttons">
+                            <button id="getConfig" class="config-submit">Get configuration</button>
+                            <button id="saveConfig" class="config-submit">Save configuration</button>
                         </div>
-                        <div id="ajax_result"></div>
+                        <div id="ajaxResult"></div>
                     </div>
                     <div class="block">
                         <h3>Statistics</h3>
-                        <div>Processed <span id="processed_posts">1012</span> posts</div>
+                        <div>Processed <span id="processedPosts">1012</span> posts</div>
                         <div>Matched 21 photos</div>
                         <div>Matched tags: 12</div>
                         <div>Matched topics: 9</div>
