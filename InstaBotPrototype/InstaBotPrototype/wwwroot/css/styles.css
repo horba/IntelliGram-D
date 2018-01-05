@@ -10,7 +10,6 @@
 
 form label {
     display: inline-block;
-    
     min-width: 130pt;
 }
 
@@ -27,14 +26,11 @@ form > div {
     margin: 2pt;
 }
 
-#get_config{
-    float:right;
-    width:45%;
+.get-save-buttons {
+    display: flex;
+    flex-direction: row;
 }
-#save_config {
-    float: left;
-    width: 45%;
-}
+
 .page-container {
     display: flex;
     flex-flow: column wrap;
@@ -73,7 +69,7 @@ form > div {
 }
 
 
-#configPage {
+.config-page {
     display: none;
     z-index : 1;
 }
@@ -85,7 +81,7 @@ form > div {
 }
 
 
-.modal {
+.modal-backgroud {
     background-color: rgba(0,0,0,0.4);
     position: fixed;
     left: 0;
@@ -96,7 +92,9 @@ form > div {
     display: none;
 }
 
-.modalWindow {
+.modal-window {
+    display:flex;
+    flex-direction:column;
     background: #ffffff;
     width: 40%;
     border-radius: 5px;
@@ -105,7 +103,8 @@ form > div {
 }
 
 .close {
-    float: right;
+    display: flex;
+    justify-content:flex-end;
     font-size: 30px;
     margin: 0 5px 0 0;
 }
@@ -115,33 +114,19 @@ form > div {
         color: #ff0000;
     }
 
-button {
-    float: right;
-}
 
 input {
-    width: 50%;
+    width: 49.5%;
     height: 30px;
     border-radius: 5px;
 }
 
-.login {
-    margin: 0 25% 0 25%;
-}
-
-.pass {
-    margin: 5% 25% 5% 25%;
-}
-
-.passConfirm {
+.modal-input {
     margin: 0 25% 5% 25%;
 }
 
-.email {
-    margin: 0 25% 5% 25%;
-}
 
-.submitBtn {
+.submit-btn {
     display: block;
     margin: 0 auto 10%;
     width: 50%;
@@ -152,27 +137,30 @@ input {
     border: 1px solid #007bff;
 }
 
-    .submitBtn:hover {
+    .submit-btn:hover {
         color: #ffffff;
         background-color: #007bff;
     }
 
-.modalTitle {
+.modal-title {
     margin: 10% 0;
     text-align: center;
     position: relative;
-    font: italic 35px 'Lobster Two',Verdana,Arial;
+    font: bold 35px 'Lobster Two',Verdana,Arial;
 }
 
-.headerAuth {
+.header-auth {
     top: 0;
     left: 0;
+    display:flex;
+    flex-direction:row;
+    justify-content:flex-end;
     background-color: #222222;
     width: 100%;
     height: 50px;
 }
 
-.btnLogReg {
+.btn-log-reg {
     width: 80px;
     height: 30px;
     margin: 10px;
@@ -182,7 +170,7 @@ input {
     border-radius: 5px;
 }
 
-    .btnLogReg:hover {
+    .btn-log-reg:hover {
         background-color: #ffffff;
         border-color: #007bff;
         color: #007bff;
@@ -191,11 +179,26 @@ input {
     text-align:center;
     margin:10% auto;
 }
-.configTitle {
+.config-title {
     text-align: center;
     margin: 0 auto;
     font: bold 40px 'Lobster Two';
 }
-#welcome {
+.welcome {
     font: bold 40px 'Lobster Two';
+}
+
+.config-submit {
+    display: block;
+    margin: 0 auto;
+    width: 45%;
+    height: 30px;
+    background-color: #ffffff;
+    border-radius: 5px;
+    color: #007bff;
+    border: 1px solid #007bff;
+}
+.config-submit:hover {
+    color: #ffffff;
+    background-color: #007bff;
 }
