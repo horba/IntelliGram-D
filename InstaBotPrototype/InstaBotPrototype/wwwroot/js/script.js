@@ -1,35 +1,35 @@
-﻿$(function () {//jquery magic to run script after page fully loaded
-    $("#get_config").click(function (e) {
+﻿$(function () {
+    $("#getConfig").click(function (e) {
         e.preventDefault();
         $.get("/api/configuration").done(function (data) {
             let values = data;
             for (var fieldName in values) {
                 if (values.hasOwnProperty(fieldName)) {
-                    $('#config_form input[name=' + fieldName + ']').val(values[fieldName]);//magic - putting values into corresponding fields
+                    $('#configForm input[name=' + fieldName + ']').val(values[fieldName]);
                 }
             };
 
 
         });
     });
-    $("#save_config").click(function (e) {
+    $("#saveConfig").click(function (e) {
         e.preventDefault();
-        let data = $("#config_form").serialize();//magic - gathering data from fields into js object, ready for sending via post
+        let data = $("#configForm").serialize();
         $.post("/api/configuration", data).done(function (response, status, xhm) {
             console.log(response);
-            $("#ajax_result").text("Save status: " + status);
+            $("#ajaxResult").text("Save status: " + status);
         });
 
     });
 });
 var btnLogin = document.getElementById("btnLogin");
-var btnSignUp = document.getElementById("btnSignUp");
-var modalLogin = document.getElementById("modalLoginWindow");
-var modalSignUp = document.getElementById("modalSignUpWindow");
-var spanExitLogin = document.getElementsByClassName("close")[0];
-var spanExitSignUp = document.getElementsByClassName("close")[1];
+var btnSignUp = document.getElementById("btnSignup");
+var modalLogin = document.getElementById("loginPopup");
+var modalSignUp = document.getElementById("signupPopup");
+var spanExitLogin = document.getElementById("closeLogin");
+var spanExitSignUp = document.getElementById("closeSignup");
 var loginForm = document.getElementById("modalLogin");
-var signUpForm = document.getElementById("modalSignUp");
+var signUpForm = document.getElementById("modalSignup");
 var authPage = document.getElementById("authPage");
 var configPage = document.getElementById("configPage");
 btnLogin.onclick = function () {
