@@ -7,8 +7,8 @@ namespace InstaBotPrototype.Services
 {
     public class AuthenticationService : IAuthenticationService
     {
-        string connectionString = @"Data Source=MYDESKTOP\SQLEXPRESS;Initial Catalog = InstaBot; Integrated Security = True";
-        DbProviderFactory factory = DbProviderFactories.GetFactory("System.Data.SqlClient");
+        String connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
+        DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
         public String Login(LoginModel model)
         {
             Guid? sessionID = null;
