@@ -12,8 +12,8 @@ namespace DBMigrator.Migrations
 					(
 						UserId int NOT NULL, 
 						SessionId uniqueidentifier NOT NULL, 
-						LoginTime DateTime DEFAULT CURRENT_TIMESTAMP, 
-                        LastActive DateTime DEFAULT CURRENT_TIMESTAMP,
+						LoginTime DateTime DEFAULT SYSDATETIME(), 
+                        LastActive DateTime DEFAULT SYSDATETIME(),
 						CONSTRAINT PK_Sessions PRIMARY KEY (UserId,LoginTime), 
 						CONSTRAINT FK_Sessions_Users FOREIGN KEY (UserId)     
 						REFERENCES dbo.Users (Id)     

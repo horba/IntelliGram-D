@@ -14,35 +14,35 @@
 <body>
     <div id="authPage">
         <div class="auth-header">
-            <button id="buttonSignUp" class="login-button">Sign Up</button>
-            <button id="buttonLogin" class="login-button">Log in</button>
+            <button id="btnSignup" class="btn-log-reg">Sign Up</button>
+            <button id="btnLogin" class="btn-log-reg">Log in</button>
         </div>
         <p class="greeting">
             <span id="welcome">Welcome to the IntelliGram service</span>
         </p>
 
 
-        <div class="modal" id="loginModal">
-            <form action="/api/Authentication/Login" class="modal-window" id="loginForm" method="post">
+        <div class="modal-backgroud" id="loginPopup">
+            <form action="/api/Authentication/Login" class="modal-window" id="modalLogin" method="post">
                 <span class="close" id="closeLogin">&times</span>
                 <p class="modal-title">IntelliGram</p>
-                <input class="form-field" id="Login" name="Login" placeholder="Login....." required type="text" value="" />
-                <input class="form-field" id="Password" name="Password" placeholder="Password......" required type="text" value="" />                
+                <input class="modal-input" id="Login" name="Login" placeholder="Login....." required type="text" value="" />
+                <input class="modal-input" id="Password" name="Password" placeholder="Password......" required type="text" value="" />                
                 <div class="error-message" id="loginError"></div>
-                <input class="submit-button" id="loginSubmit" type="submit" value="Login">
+                <input class="submit-btn" type="submit" value="Login">
             </form>
         </div>
        
-        <div class="modal" id="signUpModal">
-            <form action="/api/Authentication/Register" class="modal-window" id="signUpForm" method="post">
+        <div class="modal-backgroud" id="signupPopup">
+            <form action="/api/Authentication/Register" class="modal-window" id="modalSignup" method="post">
                 <span class="close" id="closeSignUp">&times</span>
                 <p class="modal-title">IntelliGram</p>
-                <input class="form-field" type="text" placeholder="Enter your login" name="Login" required /><br />
-                <input class="form-field" type="password" placeholder="Enter your password" name="Password" required />
-                <input class="form-field" type="password" placeholder="Confirm your password" required />
-                <input class="form-field" type="email" placeholder="Enter your email" name="Email" required />
+                <input class="modal-input" type="text" placeholder="Enter your login" name="Login" required /><br />
+                <input class="modal-input" type="password" placeholder="Enter your password" name="Password" required />
+                <input class="modal-input" type="password" placeholder="Confirm your password" required />
+                <input class="modal-input" type="email" placeholder="Enter your email" name="Email" required />
                 <div class="error-message" id="signUpError"></div>
-                <input class="submit-button" id="signUpSubmit" type="submit" value="Sign Up" />
+                <input class="submit-btn" type="submit" value="Sign Up" />
             </form>
         </div>
     </div>
@@ -55,27 +55,27 @@
                 <div class="content-center">
                     <div class="block">
                         <form id="configForm">
-                            <div>
-                                <label class ="form-left" >instagram username</label><input name="instaUsername" type="text" value="" placeholder="Johnsmith" />
+                            <div class = "config-form-group">
+                                <label class ="form-left" >instagram username</label><input class ="submit-input" name="instaUsername" type="text" value="" placeholder="Johnsmith" />
                             </div>
-                            <div>
-                                <label class ="form-left" >instagram password</label><input name="instaPassword" type="text" value="" placeholder="Password" />
+                            <div class = "config-form-group">
+                                <label class ="form-left" >instagram password</label><input class ="submit-input" name="instaPassword" type="text" value="" placeholder="Password" />
                             </div>
-                            <div>
-                                <label class ="form-left">telegram username</label><input name="telegramUsername" type="text" value="" placeholder="Johnsmith" />
+                            <div class = "config-form-group">
+                                <label class ="form-left">telegram username</label><input class ="submit-input" name="telegramUsername" type="text" value="" placeholder="Johnsmith" />
                             </div>
-                            <div>
+                            <div class = "config-form-group">
                                 <a class ="form-left" href="https://t.me/isdTestBot">Go to the telegram bot</a><label id="labelNumber"/>
                                     <script>
                                         document.getElementById('labelNumber').innerHTML =100000000000000000 * Math.random();
                                     </script>
                             </div>
-                            <div>
-                                <label class="form-left">tags</label><input name="tags" type="text" value="" placeholder="kittens, cats" />
+                            <div class = "config-form-group">
+                                <label class="form-left">tags</label><input class ="submit-input" name="tags" type="text" value="" placeholder="kittens, cats" />
                             </div>
-                            <div>
-                                <button id="getConfig" class="submit-button">Get configuration</button>
-                                <button id="saveConfig" class="submit-button">Save configuration</button>
+                            <div class="get-save-buttons">
+                                <button id="getConfig" class="config-submit">Get configuration</button>
+                                <button id="saveConfig" class="config-submit">Save configuration</button>
                             </div>
                             <div id="ajaxResult"></div>
                         </form>

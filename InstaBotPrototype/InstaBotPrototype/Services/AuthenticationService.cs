@@ -7,9 +7,8 @@ namespace InstaBotPrototype.Services
 {
     public class AuthenticationService : IAuthenticationService
     {
-        String connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
-        DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
-      
+        string connectionString = @"Data Source=MYDESKTOP\SQLEXPRESS;Initial Catalog = InstaBot; Integrated Security = True";
+        DbProviderFactory factory = DbProviderFactories.GetFactory("System.Data.SqlClient");
         public String Login(LoginModel model)
         {
             Guid? sessionID = null;
@@ -19,7 +18,7 @@ namespace InstaBotPrototype.Services
                 dbConnection.Open();
                 var selectID = factory.CreateCommand();
                 selectID.Connection = dbConnection;
-                selectID.CommandText = $"select Id from dbo.Users where Login = @login and Password = @password";
+                selectID.CommandText = $"SELECT Id FROM dbo.Users WHERE Login = @login and Password = @password";
                 var login = CreateParameter("@login", model.Login);
                 var password = CreateParameter("@password", model.Password);
                 selectID.Parameters.AddRange(new[] { login, password });
@@ -30,14 +29,14 @@ namespace InstaBotPrototype.Services
                     int id = reader.GetInt32(0);
                     reader.Close();
                     sessionID = Guid.NewGuid();
-                    var updateLastLogin = factory.CreateCommand();
-                    updateLastLogin.Connection = dbConnection;
-                    updateLastLogin.CommandText = $"INSERT INTO dbo.Sessions (UserId,SessionId) VALUES (@id,@sessionID)";
-                    var pId = CreateParameter("@id", id);
-                    var pSessionId = CreateParameter("@sessionID", sessionID);
-                    updateLastLogin.Parameters.Add(pId);
-                    updateLastLogin.Parameters.Add(pSessionId);
-                    updateLastLogin.ExecuteNonQuery();
+                    var insertSession = factory.CreateCommand();
+                    insertSession.Connection = dbConnection;
+                    insertSession.CommandText = $"INSERT INTO dbo.Sessions (UserId,SessionId) VALUES (@id,@sessionID)";
+                    var Id = CreateParameter("@id", id);
+                    var SessionId = CreateParameter("@sessionID", sessionID);
+                    insertSession.Parameters.Add(Id);
+                    insertSession.Parameters.Add(SessionId);
+                    insertSession.ExecuteNonQuery();
                 }
             }
             return sessionID?.ToString();
@@ -64,8 +63,7 @@ namespace InstaBotPrototype.Services
 
             return Login(model);
         }
-
-        DbParameter CreateParameter(string name, object value)
+        private DbParameter CreateParameter(string name, object value)
         {
             var parameter = factory.CreateParameter();
             parameter.ParameterName = name;

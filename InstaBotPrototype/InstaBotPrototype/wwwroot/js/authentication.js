@@ -1,23 +1,24 @@
-﻿$("#buttonLogin").click(function () {
-    $("#loginModal").css("display", "block");
+﻿$("#btnLogin").click(function () {
+    $("#loginPopup").css("display", "block");
 });
 $("#closeLogin").click(function () {
-    $("#loginModal").css("display", "none");
+    $("#loginPopup").css("display", "none");
     $("#loginError").text("");
 });
-$("#buttonSignUp").click(function () {
-    $("#signUpModal").css("display", "block");
+$("#btnSignup").click(function () {
+    $("#signupPopup").css("display", "block");
 });
 $("#closeSignUp").click(function () {
-    $("#signUpModal").css("display", "none");
+    $("#signupPopup").css("display", "none");
+    $("#signupError").text("");
 });
-var $loginForm = $("#loginForm");
-$("#loginSubmit").click(function (event) {
+var $loginForm = $("#modalLogin");
+$loginForm.submit(function (event) {
     clickHandler(event, "#loginError", $loginForm);
 });
-var $signUpForm = $("#signUpForm");
-$("#signUpSubmit").click(function (event) {
-    clickHandler(event, "#signUpError", $signUpForm );
+var $signUpForm = $("#modalSignup");
+$signUpForm.submit(function (event) {
+    clickHandler(event, "#signUpError", $signUpForm);
 });
 function clickHandler(event,errorDiv,$form) {
     event.preventDefault();
