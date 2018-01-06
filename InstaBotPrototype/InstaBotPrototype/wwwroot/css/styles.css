@@ -202,3 +202,7 @@ input {
     color: #ffffff;
     background-color: #007bff;
 }
+.config-label-random {
+    width: 49.5%;
+    margin-left:10px;
+}
