@@ -27,7 +27,7 @@ namespace InstaBotPrototype.Controllers
 
         // GET api/configuration/5
         [HttpGet("{id}")]
-        public ConfigurationModel Get(int id)
+        public string Get(int id)
         {
             if (IsLoggedIn())
             {
@@ -43,6 +43,7 @@ namespace InstaBotPrototype.Controllers
         [HttpPost]
         public IActionResult Post([FromForm]ConfigurationModel model)
         {
+
             if (IsLoggedIn())
             {
                 // code here
