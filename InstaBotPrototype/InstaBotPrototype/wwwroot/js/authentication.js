@@ -31,6 +31,7 @@ function clickHandler(event,errorDiv,$form) {
             document.cookie = "sessionID=" + response.sessionID;
             $("#configPage").css("display", "block");
             $("#authPage").css("display", "none");
+            $("#verifyKeyLabel").text(response.verifyKey);
         },
         error: function (response) {
             $(errorDiv).text(response.responseJSON.errorMessage);

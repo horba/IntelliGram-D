@@ -6,5 +6,6 @@ namespace InstaBotPrototype.Services
     {
         String Login(LoginModel model);
         String Register(LoginModel model);
+        int? GetVerifyKey(LoginModel model);
     }
 }
