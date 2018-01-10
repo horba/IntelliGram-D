@@ -19,10 +19,12 @@
                 <div class="block">
                     <form id="config_form">
                         <div>
-                            <label>instagram username</label><input name="instaUsername" type="text" value="" placeholder="Johnsmith" />
+                            <label>instagram username</label>
+                            <input name="instaUsername" type="text" value="" placeholder="Johnsmith" />
                         </div>
                         <div>
-                            <label>instagram password</label><input name="instaPassword" type="text" value="" placeholder="Password" />
+                            <label>instagram password</label>
+                            <input name="instaPassword" type="text" value="" placeholder="Password" />
                         </div>
                         <div>
                             <label>telegram username</label>
@@ -34,10 +36,12 @@
                             </script>
                         </div>
                         <div>
-                            <label>tags</label><input name="tags" type="text" value="" placeholder="kittens, cats" />
+                            <label>tags</label>
+                            <input name="tags" type="text" value="" placeholder="kittens, cats" />
                         </div>
                         <div>
-                            <label>topics</label><input name="topics" type="text" value="" placeholder="nature, lake" />
+                            <label>topics</label>
+                            <input name="topics" type="text" value="" placeholder="nature, lake" />
                         </div>
                     </form>
                     <div>
@@ -65,7 +69,8 @@
     $(function() {//jquery magic to run script after page fully loaded
         $("#get_config").click(function(e) {
             e.preventDefault();
-            $.get("/api/configuration").done(function (data) {                
+            $.get("/api/configuration").done(function (data) {   
+                console.log(data);
                 let values = data;
                 for (var fieldName in values) {
                     if (values.hasOwnProperty(fieldName)) {                        
@@ -78,12 +83,27 @@
         });
         $("#save_config").click(function(e) {
             e.preventDefault();
-            let data = $("#config_form").serialize();//magic - gathering data from fields into js object, ready for sending via post
-            $.post("/api/configuration", data).done(function(response, status, xhm) {
-                console.log(response);
-                $("#ajax_result").text("Save status: " + status);
-            });
+            let data = {
+                instaUsername: $("input[name='instaUsername']").val(),
+                instaPassword: $("input[name='instaPassword']").val(),
+                telegramUsername: $("input[name='telegramUsername']").val(), 
+            };
 
+            let tags = [];
+            let splitTags = $("input[name='tags']").val().split(',');
+            splitTags.forEach(tag => tags.push({ tag: tag }));
+
+            let topics = [];
+            let splitTopics = $("input[name='topics']").val().split(',');
+            splitTopics.forEach(topic => topics.push({ topic: topic }));
+
+            data['tags'] = tags;
+            data['topics'] = topics;
+
+            $.ajax('/api/configuration', {method: 'POST', data: $.param(data)})
+                .then(function (response) {
+                    console.log('success', response);
+                });
         });
     });
 </script>
