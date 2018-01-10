@@ -1,65 +1,63 @@
-﻿using System;
-using System.Data.Common;
+﻿using System.Data.Common;
+using static System.Console;
 
 namespace DBMigrator
 {
-    internal class DBMigration
+    abstract class DBMigration
     {
-        #region Public Constructors
-
-        public DBMigration(DbCommand applyCommand, DbCommand reverseCommand, string name)
+        public DBMigration(DbProviderFactory factory, DbConnection connection)
         {
-            ApplyCommand = applyCommand;
-            ReverseCommand = reverseCommand;
-            Name = name;
+            Factory = factory;
+
+            Name = GetType().Name;
+
+            ApplyCommand = Factory.CreateCommand();
+            ReverseCommand = Factory.CreateCommand();
+
+            this.connection = connection;
+
+            var command = factory.CreateCommand();
+            command.CommandText = $"select count(*) from dbo.Migrations where Name = '{Name}'";
+            command.Connection = connection;
+
+            try
+            {
+                if ((int)command.ExecuteScalar() == 1)
+                {
+                    IsApplied = true;
+                }
+            }
+            catch
+            {
+                WriteLine("Can`t find Migrations table");
+                WriteLine("Try restarting this application");
+                WriteLine("If you continue getting this message, connect application distributor");
+                WriteLine(string.Empty.PadRight(WindowWidth - 1, '-'));
+            }
         }
-
-        #endregion Public Constructors
-
-        #region Public Properties
 
         public DbCommand ApplyCommand { get; private set; }
-        public string ConnectionString { get; set; }
-        public DbProviderFactory Factory { get; set; }
-        public bool IsApplied { get; set; }
-        public string Name { get; private set; }
         public DbCommand ReverseCommand { get; private set; }
+        public DbProviderFactory Factory { get; private set; }
+        public string Name { get; private set; }
+        public bool IsApplied { get; private set; }
+        DbConnection connection;
 
-        #endregion Public Properties
-
-        #region Public Methods
-
-        public bool Apply()
+        public void Apply()
         {
-            IsApplied = Run(ApplyCommand);
-
-            if (IsApplied)
-            {
-                AddLog();
-            }
-
-            return IsApplied;
+            Run(ApplyCommand);
+            AddLog();
         }
 
-        public bool Reverse()
+        public void Reverse()
         {
-            IsApplied = !Run(ReverseCommand);
-
-            if (!IsApplied)
-            {
-                RemoveLog();
-            }
-
-            return IsApplied;
+            Run(ReverseCommand);
+            RemoveLog();
         }
-
-        #endregion Public Methods
-
-        #region Private Methods
 
         private void AddLog()
         {
-            DbCommand command = Factory.CreateCommand();
+            var command = Factory.CreateCommand();
             command.CommandText = $"INSERT INTO dbo.Migrations (Name, ApplyTime) VALUES ('{Name}', GetDate())";
 
             Run(command);
@@ -67,36 +65,15 @@ namespace DBMigrator
 
         private void RemoveLog()
         {
-            DbCommand command = Factory.CreateCommand();
+            var command = Factory.CreateCommand();
             command.CommandText = $"delete from dbo.Migrations where Name='{Name}'";
 
             Run(command);
         }
 
-        private bool Run(DbCommand command)
+        private void Run(DbCommand command)
         {
-            bool correct = true;
-            DbConnection dbConnection = Factory.CreateConnection();
-            dbConnection.ConnectionString = ConnectionString;
-
-            command.Connection = dbConnection;
-
-            try
-            {
-                dbConnection.Open();
-                command.ExecuteNonQuery();
-            }
-            catch
-            {
-                correct = false;
-            }
-            finally
-            {
-                dbConnection?.Close();
-            }
-            return correct;
-        }
-
-        #endregion Private Methods
+            command.Connection = connection;
+            command.ExecuteNonQuery(); }
     }
 }
