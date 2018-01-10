@@ -9,7 +9,9 @@ namespace InstaBotPrototype.Controllers
     [Route("api/[controller]")]
     public class ConfigurationController : Controller
     {
-        string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
+        
+        static string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
+        ConfigService config = new ConfigService(connectionString);
         DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
 
         // GET api/configuration
@@ -18,8 +20,7 @@ namespace InstaBotPrototype.Controllers
         {
             if (IsLoggedIn())
             {
-                // code here
-                return new ConfigurationModel { InstaUsername = "JohnSmith", InstaPassword = "Passw0rd", TelegramUsername = "telegaN", Tags = "cats", Topics = "Nature, Lake" };
+                return config.GetDefaultConfig();
             }
 
             return null;
@@ -27,15 +28,19 @@ namespace InstaBotPrototype.Controllers
 
         // GET api/configuration/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public ConfigurationModel Get(int id)
         {
             if (IsLoggedIn())
             {
-                // code here
-
-                return "value";
+                try
+                {
+                    return config.GetConfig(id);
+                }
+                catch (Exception e)
+                {
+                    throw e;
+                }
             }
-
             return null;
         }
 
@@ -43,12 +48,17 @@ namespace InstaBotPrototype.Controllers
         [HttpPost]
         public IActionResult Post([FromForm]ConfigurationModel model)
         {
-
             if (IsLoggedIn())
             {
-                // code here
+                try
+                {
+                    config.SaveConfig(model);
+                }
+                catch(Exception e)
+                {
+                    throw e;
+                }
             }
-
             return Ok(model);
         }
 
