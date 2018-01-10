@@ -1,11 +1,10 @@
 ﻿using System.Data.Common;
-
 namespace DBMigrator.Migrations
 {
     [Indexer(201801100151)]
-    class M201801100151_CreateTelegramITable : DBMigration
+    class M201801100151_CreateTelegramIntegrationTable : DBMigration
     {
-        public M201801100151_CreateTelegramITable(object factory, object connection) : base(factory as DbProviderFactory, connection as DbConnection)
+        public M201801100151_CreateTelegramIntegrationTable(object factory, object connection) : base(factory as DbProviderFactory, connection as DbConnection)
         {
             ApplyCommand.CommandText =
             @"CREATE TABLE dbo.TelegramIntegration 

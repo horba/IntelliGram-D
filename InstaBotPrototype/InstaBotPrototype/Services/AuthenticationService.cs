@@ -19,23 +19,26 @@ namespace InstaBotPrototype.Services
                 dbConnection.Open();
                 var selectID = factory.CreateCommand();
                 selectID.Connection = dbConnection;
-                selectID.CommandText = $"SELECT Id,TelegramVerificationKey FROM dbo.Users WHERE Login = @login and Password = @password";
+                selectID.CommandText = $"SELECT Id FROM dbo.Users WHERE Login = @login and Password = @password";
                 var login = CreateParameter("@login", model.Login);
                 var password = CreateParameter("@password", model.Password);
                 selectID.Parameters.AddRange(new[] { login, password });
-                var reader = selectID.ExecuteReader();
-                if (reader.HasRows)
+                var readerID = selectID.ExecuteReader();
+                if (readerID.HasRows)
                 {
-                    reader.Read();
-                    int id = reader.GetInt32(0);
-                    verifyKey = reader.GetInt32(1);
-                    reader.Close();
+                    readerID.Read();
+                    int id = readerID.GetInt32(0);
+                    readerID.Close();
                     var selectTelegram = factory.CreateCommand();
                     selectTelegram.Connection = dbConnection;
-                    selectTelegram.CommandText = $"SELECT COUNT(*) FROM dbo.TelegramIntegration WHERE UserId = @id";
+                    selectTelegram.CommandText = $"SELECT TelegramVerificationKey FROM dbo.TelegramVerification WHERE UserId = @id";
                     selectTelegram.Parameters.Add(CreateParameter("@id", id));
-                    if (Convert.ToInt32(selectTelegram.ExecuteScalar()) == 1)
-                        verifyKey = null;
+                    var readerKey = selectTelegram.ExecuteReader();
+                    if (readerKey.HasRows) {
+                        readerKey.Read();
+                        verifyKey = readerKey.GetInt32(0);
+                    }
+                    readerKey.Close();
                 }
             }
             return verifyKey;
