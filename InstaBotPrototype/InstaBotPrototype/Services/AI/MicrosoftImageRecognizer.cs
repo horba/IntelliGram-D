@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -12,9 +11,6 @@ namespace InstaBotPrototype.Services.AI
     {
         string subscriptionKey = WebConfigurationManager.OpenWebConfiguration(null).AppSettings.Settings["MicrosoftSubscriptionKey"].Value;
         string uriBase = WebConfigurationManager.OpenWebConfiguration(null).AppSettings.Settings["MicrosoftUriBase"].Value;
-
-        public override IEnumerable<string> RecognizeTopic(byte[] imageBytes) => RecognizeTopicAsync(imageBytes).Result;
-        public override IEnumerable<string> RecognizeTopic(string imageFilePath) => RecognizeTopicAsync(GetImageAsByteArray(imageFilePath)).Result;
 
         public override async Task<IEnumerable<string>> RecognizeTopicAsync(byte[] imageBytes)
         {
@@ -40,15 +36,6 @@ namespace InstaBotPrototype.Services.AI
 
                 return request.description.tags;
             }
-        }
-
-        public override async Task<IEnumerable<string>> RecognizeTopicAsync(string imageFilePath) => await RecognizeTopicAsync(GetImageAsByteArray(imageFilePath));
-
-        static byte[] GetImageAsByteArray(string imageFilePath)
-        {
-            var fileStream = new FileStream(imageFilePath, FileMode.Open, FileAccess.Read);
-            var binaryReader = new BinaryReader(fileStream);
-            return binaryReader.ReadBytes((int)fileStream.Length);
         }
 
         class Request
