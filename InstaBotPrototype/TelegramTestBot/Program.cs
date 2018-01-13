@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Diagnostics;
@@ -7,59 +8,78 @@ using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+using System.Data.Common;
 
 namespace Telegram.Bot.Example
 {
     class Program
     {
         // Bot username: @isdTestBot
-        private static string connectionString = "Server=DESKTOP-2J18FL2\\SQLEXPRESS;Database=Telegram;Trusted_Connection=True;";
-        private static string telegramApiKey = "449290937:AAHERJRQiQCq4nm1fB-8rFJFFIxeWR57Yc8";
-        private static readonly TelegramBotClient Bot = new TelegramBotClient(telegramApiKey);
+        private static string connectionString;
+        private static string telegramApiKey;
+        private static readonly TelegramBotClient bot;
 
         private delegate void BotAction(Message message);
-        private static Dictionary<string, BotAction> botAction = new Dictionary<string, BotAction>()
+        private static readonly Dictionary<BotCommand, BotAction> botAction;
+        private static readonly Dictionary<string, AccessModifier> commandDict;
+
+        static Program()
         {
-            { "/start", StartDialog },
-            {"/menu", ShowMenu },
-            {"/showRandomNumber", ShowRandomNumber },
-            {"/showUsers", ShowUsers },
-            {"/delete", DeleteUser },
-            {"/addToDb", AddUser }
-        };
+            telegramApiKey = "449290937:AAHERJRQiQCq4nm1fB-8rFJFFIxeWR57Yc8";
+            bot = new TelegramBotClient(telegramApiKey);
 
-        static void Main(string[] args)
+            commandDict = new Dictionary<string, AccessModifier>()
+            {
+                { "/start", AccessModifier.Public },
+                { "/menu", AccessModifier.Verified },
+                { "/help", AccessModifier.Public }
+            };
+
+            botAction = new Dictionary<BotCommand, BotAction>(new BotCommandEqualityComparer())
+            {
+                { new BotCommand { Command = "/start", Access = AccessModifier.Public }, DialogStart },
+                { new BotCommand { Command = "/menu", Access = AccessModifier.Verified }, ShowMenu },
+                { new BotCommand { Command = "/help", Access = AccessModifier.Public }, ShowHelp }
+            };
+        }
+
+        static void Main()
         {
-            Bot.OnMessage += BotOnMessageReceived;
-            Bot.OnReceiveError += BotOnReceiveError;
+            try
+            {
+                connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
 
-            Console.WriteLine("Bot starts here...");
+                bot.OnMessage += BotOnMessageReceived;
+                bot.OnReceiveError += BotOnReceiveError;
 
-            Bot.StartReceiving();
-            Console.ReadLine();
-            Bot.StopReceiving();
+                Console.WriteLine("Bot is waiting for messages...");
+
+                bot.StartReceiving();
+                Console.ReadLine();
+                bot.StopReceiving();
+            }
+            catch (DbException e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
 
         #region Bot commands
 
-        private static async void ShowUsers(Message message)
+        private static async void ShowHelp(Message message)
         {
-            await Bot.SendTextMessageAsync(message.Chat.Id, await GetUsers());
+            await bot.SendTextMessageAsync(message.Chat.Id, "Hi there! This bot helps you getting Instagram photos.");
         }
 
-        private static async void ShowRandomNumber(Message message)
+        private static async void DialogStart(Message message)
         {
-            var random = new Random();
-            await Bot.SendTextMessageAsync(message.Chat.Id, $"Your number: {random.Next()} :)");
-        }
+            bool isNewUser = await AddUser(message);
 
-        private static async void StartDialog(Message message)
-        {
-            await Bot.SendTextMessageAsync(message.Chat.Id, $"Hello, {message.Chat.FirstName}!");
-            if (message.Chat.FirstName != null)
-            {
-                AddUser(message);
-            }
+            string answer = isNewUser
+                ? $"Hello, {message.Chat.FirstName}!" 
+                : $"I'm glad to see you again, {message.Chat.FirstName}";
+
+            await bot.SendTextMessageAsync(message.Chat.Id, answer);
         }
 
         private static async void ShowMenu(Message message)
@@ -78,25 +98,48 @@ namespace Telegram.Bot.Example
                     }
                 });
 
-            await Bot.SendTextMessageAsync(message.Chat.Id, "Choose button",
+            await bot.SendTextMessageAsync(message.Chat.Id, "Choose button",
                 replyMarkup: keyboard);
-        }
-
-        private static async void AddUser(Message message)
-        {
-            bool isNewUser = await AddUser((int)message.Chat.Id, message.Chat.FirstName, message.Chat.LastName);
-            string answer = isNewUser
-                ? $"Successfully added to the database, {message.Chat.FirstName}"
-                : $"You are already in the database, {message.Chat.FirstName}";
-            await Bot.SendTextMessageAsync(message.Chat.Id, answer);
         }
 
         private static async void DeleteUser(Message message)
         {
-            string answer = await DeleteUser((int)message.Chat.Id) 
-                ? "Deleted " 
+            string answer = await DeleteUser((int)message.Chat.Id)
+                ? "Deleted "
                 : "You have been already deleted";
-            await Bot.SendTextMessageAsync(message.Chat.Id, answer);
+            await bot.SendTextMessageAsync(message.Chat.Id, answer);
+        }
+
+        #endregion
+
+        #region Helper methods
+
+        private static async void SendMessage(long chatId, string text)
+        {
+            await bot.SendTextMessageAsync(chatId, text);
+        }
+
+        #endregion
+
+        #region Wrappers
+
+        private static async void VerifyCommand(string telegramText, long chatId)
+        {
+            if (long.TryParse(telegramText, out long telegramVerificationKey))
+            {
+                if (await Verify(telegramVerificationKey, chatId))
+                {
+                    SendMessage(chatId, "Congratulations! You have been successfully verified");
+                }
+                else
+                {
+                    SendMessage(chatId, "Please, enter correct verification code.\nThis code is on your web page");
+                }
+            }
+            else
+            {
+                SendMessage(chatId, "Please, enter correct verification code"); 
+            }
         }
 
         #endregion
@@ -110,7 +153,7 @@ namespace Telegram.Bot.Example
                 using (var connection = new SqlConnection(connectionString))
                 {
                     await connection.OpenAsync();
-                    string getUsersQuery = "SELECT * FROM Users";
+                    string getUsersQuery = "SELECT * FROM TelegramIntegration";
                     using (var getUsersCmd = new SqlCommand(getUsersQuery, connection))
                     {
                         string users = String.Empty;
@@ -138,32 +181,34 @@ namespace Telegram.Bot.Example
 
         private static async Task<bool> UserExists(int chatId, SqlConnection connection)
         {
-            string checkExistsQuery = "SELECT COUNT(ChatID) FROM Users WHERE ChatID = @ChatID";
+            string checkExistsQuery = "SELECT COUNT(ChatId) FROM TelegramIntegration WHERE ChatId = @ChatId";
             using (var checkExistsCmd = new SqlCommand(checkExistsQuery, connection))
             {
-                checkExistsCmd.Parameters.Add(new SqlParameter() { ParameterName = "@ChatID", SqlDbType = System.Data.SqlDbType.Int, Value = chatId });
+                checkExistsCmd.Parameters.Add(new SqlParameter() { ParameterName = "@ChatId", SqlDbType = System.Data.SqlDbType.Int, Value = chatId });
                 return Convert.ToBoolean(await checkExistsCmd.ExecuteScalarAsync());
             }
         }
 
-        private static async Task<bool> AddUser(int chatId, string firstName, string lastName)
+        private static async Task<bool> AddUser(Message message)
         {
             using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
-
-                if (!await UserExists(chatId, connection))
+                if (!await UserExists((int)message.Chat.Id, connection))
                 {
                     string addQuery =
-                        "INSERT INTO Users " +
-                        "(ChatID, FirstName, LastName) " +
-                        "VALUES(@ChatID, @FirstName, @LastName)";
+                        "INSERT INTO TelegramIntegration " +
+                        "(ChatId, FirstName, LastName, UserId) " +
+                        "VALUES(@ChatId, @FirstName, @LastName, @UserId)";
 
                     using (var addCmd = new SqlCommand(addQuery, connection))
                     {
-                        addCmd.Parameters.Add(new SqlParameter() { ParameterName = "@ChatID", SqlDbType = System.Data.SqlDbType.Int, Value = chatId });
-                        addCmd.Parameters.Add(new SqlParameter() { ParameterName = "@FirstName", SqlDbType = System.Data.SqlDbType.NVarChar, Value = firstName });
-                        addCmd.Parameters.Add(new SqlParameter() { ParameterName = "@LastName", SqlDbType = System.Data.SqlDbType.NVarChar, Value = (object)lastName ?? DBNull.Value });
+                        addCmd.Parameters.Add(new SqlParameter() { ParameterName = "@ChatId", SqlDbType = System.Data.SqlDbType.Int, Value = message.Chat.Id });
+                        addCmd.Parameters.Add(new SqlParameter() { ParameterName = "@FirstName", SqlDbType = System.Data.SqlDbType.NVarChar, Value = message.Chat.FirstName });
+                        // Last name can be null
+                        addCmd.Parameters.Add(new SqlParameter() { ParameterName = "@LastName", SqlDbType = System.Data.SqlDbType.NVarChar, Value = (object)message.Chat.LastName ?? DBNull.Value });
+                        // By default it sets to null
+                        addCmd.Parameters.Add(new SqlParameter() { ParameterName = "@UserId", SqlDbType = System.Data.SqlDbType.Int, Value = DBNull.Value });
                         await addCmd.ExecuteNonQueryAsync();
                         return true;
                     }
@@ -179,16 +224,87 @@ namespace Telegram.Bot.Example
                 await connection.OpenAsync();
                 if (await UserExists(chatId, connection))
                 {
-                    string deleteQuery = "DELETE FROM Users WHERE ChatID = @ChatID";
+                    string deleteQuery = "DELETE FROM TelegramIntegration WHERE ChatId = @ChatId";
                     using (var deleteCmd = new SqlCommand(deleteQuery, connection))
                     {
-                        deleteCmd.Parameters.Add(new SqlParameter() { ParameterName = "@ChatID", SqlDbType = System.Data.SqlDbType.Int, Value = chatId });
+                        deleteCmd.Parameters.Add(new SqlParameter() { ParameterName = "@ChatId", SqlDbType = System.Data.SqlDbType.Int, Value = chatId });
                         await deleteCmd.ExecuteScalarAsync();
                         return true;
                     }
                 }
             }
             return false;
+        }
+
+        private static async Task<bool> CheckVerification(long chatId)
+        {
+            using(var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+                string checkVerificationQuery = "SELECT UserId FROM TelegramIntegration WHERE ChatId = @ChatId";
+                using(var checkVerificationCmd = new SqlCommand(checkVerificationQuery, connection))
+                {
+                    checkVerificationCmd.Parameters.Add(new SqlParameter() { ParameterName = "@ChatId", Value = chatId });
+                    return Convert.ToBoolean(await checkVerificationCmd.ExecuteScalarAsync() != DBNull.Value);
+                }
+            }
+        }
+
+        private static async Task<bool> Verify(long telegramVerificationKey, long chatId)
+        {
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+                string checkVerificationKeyQuery =
+                    "SELECT UserId " +
+                    "FROM TelegramVerification " +
+                    "WHERE TelegramVerificationKey = @TelegramVerificationKey";
+
+                using (var verificationCommand = new SqlCommand(checkVerificationKeyQuery, connection))
+                {
+                    verificationCommand.Parameters.Add(new SqlParameter { ParameterName = "@TelegramVerificationKey", Value = telegramVerificationKey });
+                    var userId = await verificationCommand.ExecuteScalarAsync();
+
+                    if (userId != null)
+                    {
+                        await UpdateUserId((int)userId);
+                        await DeleteVerificationRecord();
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
+                #region Helper db methods
+
+                async Task UpdateUserId(int userId)
+                {
+                    string insertUserIdQuery = "UPDATE TelegramIntegration SET UserId = @UserId WHERE ChatId = @ChatId";
+
+                    using (var insertUserIdCommand = new SqlCommand(insertUserIdQuery, connection))
+                    {
+                        insertUserIdCommand.Parameters.Add(new SqlParameter { ParameterName = "UserId", Value = userId });
+                        insertUserIdCommand.Parameters.Add(new SqlParameter { ParameterName = "ChatId", Value = chatId });
+                        await insertUserIdCommand.ExecuteScalarAsync();
+                    }
+                }
+
+                async Task DeleteVerificationRecord()
+                {
+                    string deleteVerificationQuery = "DELETE FROM TelegramVerification WHERE TelegramVerificationKey = @TelegramVerificationKey";
+
+                    using (var deleteVerificationCommand = new SqlCommand(deleteVerificationQuery, connection))
+                    {
+                        deleteVerificationCommand.Parameters.Add(new SqlParameter { ParameterName = "@TelegramVerificationKey", Value = telegramVerificationKey });
+                        await deleteVerificationCommand.ExecuteScalarAsync();
+                    }
+                }
+
+                #endregion
+
+            }
         }
 
         #endregion
@@ -200,30 +316,45 @@ namespace Telegram.Bot.Example
             try
             {
                 var message = messageEventArgs.Message;
-                if (message == null)
+                if (message == null || message.Type != MessageType.TextMessage)
                 {
-                    return;
-                }
-                else if (message.Type != MessageType.TextMessage)
-                {
-                    await Bot.SendTextMessageAsync(message.Chat.Id, "👀");
+                    await bot.SendTextMessageAsync(message.Chat.Id, "Write the correct command 👀");
                     return;
                 }
 
-                botAction.TryGetValue(message.Text, out BotAction currentAction);
-                if (currentAction != null)
+                bool isVerified = await CheckVerification(message.Chat.Id);
+
+                var command = new BotCommand() { Command = message.Text };
+                
+
+                if (commandDict.ContainsKey(command.Command))
                 {
-                    currentAction.Invoke(message);
+                    command.Access = commandDict[command.Command];
+                }
+
+                botAction.TryGetValue(command, out BotAction currentAction);
+
+                if (command.Access == AccessModifier.Public && currentAction != null || isVerified)
+                {
+                    if (currentAction != null)
+                    {
+                        currentAction.Invoke(message);
+                    }
+                    else
+                    {
+                        SendMessage(message.Chat.Id, "Please, enter one of the available commands");
+                    }
                 }
                 else
                 {
-                    await Bot.SendTextMessageAsync(message.Chat.Id, "Cool message bro!");
+                    VerifyCommand(message.Text, message.Chat.Id);
                 }
 
                 // Debug
                 Console.WriteLine($"Message: {message.Text} from {message.Chat.FirstName} {message.Chat.LastName}");
                 Console.WriteLine($"Username: {message.Chat.Username}");
                 Console.WriteLine($"ChatId: {message.Chat.Id}");
+                Console.WriteLine("---------------------------------");
             }
             catch (Exception ex)
             {

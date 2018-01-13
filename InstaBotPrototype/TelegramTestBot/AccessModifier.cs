@@ -2,6 +2,7 @@
 {
     enum AccessModifier
     {
+        None,
         Public,
         Verified
     }

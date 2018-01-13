@@ -11,9 +11,8 @@ namespace DBMigrator.Migrations
 					(
 						UserId int, 
 						ChatId bigint NOT NULL,
-                        TelegramUserId int NOT NULL,
                         FirstName nvarchar(50) NOT NULL,
-                        LastName nvarchar(50) NOT NULL,
+                        LastName nvarchar(50) NULL,
 						CONSTRAINT PK_TelegramIntegration PRIMARY KEY (ChatID), 
 						CONSTRAINT FK_TelegramIntegration_Users FOREIGN KEY (UserId)     
 						REFERENCES dbo.Users (Id)     
