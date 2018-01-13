@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TelegramTestBot
+namespace Telegram.Bot.Example
 {
     class BotCommand
     {
