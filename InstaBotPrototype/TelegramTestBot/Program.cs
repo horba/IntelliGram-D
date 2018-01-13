@@ -88,13 +88,13 @@ namespace Telegram.Bot.Example
                 {
                     new []
                     {
-                        new KeyboardButton("/showUsers"),
-                        new KeyboardButton("/showRandomNumber")
+                        new KeyboardButton("/privateOption1"),
+                        new KeyboardButton("/privateOption2")
                     },
                     new []
                     {
-                        new KeyboardButton("/delete"),
-                        new KeyboardButton("/addToDb")
+                        new KeyboardButton("/privateOption3"),
+                        new KeyboardButton("/privateOption4")
                     }
                 });
 
