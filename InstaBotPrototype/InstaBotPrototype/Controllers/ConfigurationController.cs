@@ -22,7 +22,6 @@ namespace InstaBotPrototype.Controllers
             {
                 return config.GetDefaultConfig();
             }
-
             return null;
         }
 
@@ -32,14 +31,7 @@ namespace InstaBotPrototype.Controllers
         {
             if (IsLoggedIn())
             {
-                try
-                {
-                    return config.GetConfig(id);
-                }
-                catch (Exception e)
-                {
-                    throw e;
-                }
+                return config.GetConfig(id);
             }
             return null;
         }
@@ -50,14 +42,7 @@ namespace InstaBotPrototype.Controllers
         {
             if (IsLoggedIn())
             {
-                try
-                {
-                    config.SaveConfig(model);
-                }
-                catch(Exception e)
-                {
-                    throw e;
-                }
+                config.SaveConfig(model);
             }
             return Ok(model);
         }
