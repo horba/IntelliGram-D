@@ -12,7 +12,7 @@
 
         });
     });
-    $("#save_config").click(function (e) {
+    $("#saveConfig").click(function (e) {
         e.preventDefault();
         let data = {
             instaUsername: $("input[name='instaUsername']").val(),
