@@ -1,22 +1,39 @@
-﻿$(function () {//jquery magic to run script after page fully loaded
+$(function () {
     $("#getConfig").click(function (e) {
         e.preventDefault();
         $.get("/api/configuration").done(function (data) {
             let values = data;
             for (var fieldName in values) {
                 if (values.hasOwnProperty(fieldName)) {
-                    $('#configForm input[name=' + fieldName + ']').val(values[fieldName]);//magic - putting values into corresponding fields
+                    $('#configForm input[name=' + fieldName + ']').val(values[fieldName]);
                 }
             };
+
+
         });
     });
     $("#saveConfig").click(function (e) {
         e.preventDefault();
-        let data = $("#configForm").serialize();//magic - gathering data from fields into js object, ready for sending via post
-        $.post("/api/configuration", data).done(function (response, status, xhm) {
-            console.log(response);
-            $("#ajaxResult").text("Save status: " + status);
-        });
+        let data = {
+            instaUsername: $("input[name='instaUsername']").val(),
+            instaPassword: $("input[name='instaPassword']").val(),
+            telegramUsername: $("input[name='telegramUsername']").val(),
+        };
 
+        let tags = [];
+        let splitTags = $("input[name='tags']").val().split(',');
+        splitTags.forEach(tag => tags.push({ tag: tag }));
+
+        let topics = [];
+        let splitTopics = $("input[name='topics']").val().split(',');
+        splitTopics.forEach(topic => topics.push({ topic: topic }));
+
+        data['tags'] = tags;
+        data['topics'] = topics;
+
+        $.ajax('/api/configuration', { method: 'POST', data: $.param(data) })
+            .then(function (response) {
+                console.log('success', response);
+            });
     });
 });

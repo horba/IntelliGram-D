@@ -1,4 +1,3 @@
-﻿
 @{
     Layout = null;
 }
@@ -18,21 +17,19 @@
             <button id="btnLogin" class="btn-log-reg">Log in</button>
         </div>
         <p class="greeting">
-            <span id="welcome">Welcome to the IntelliGram service</span>
+            <span class="welcome">Welcome to the IntelliGram service</span>
         </p>
-
-
         <div class="modal-backgroud" id="loginPopup">
             <form action="/api/Authentication/Login" class="modal-window" id="modalLogin" method="post">
                 <span class="close" id="closeLogin">&times</span>
                 <p class="modal-title">IntelliGram</p>
                 <input class="modal-input" id="Login" name="Login" placeholder="Login....." required type="text" value="" />
-                <input class="modal-input" id="Password" name="Password" placeholder="Password......" required type="text" value="" />                
+                <input class="modal-input" id="Password" name="Password" placeholder="Password......" required type="text" value="" />
                 <div class="error-message" id="loginError"></div>
                 <input class="submit-btn" type="submit" value="Login">
             </form>
         </div>
-       
+
         <div class="modal-backgroud" id="signupPopup">
             <form action="/api/Authentication/Register" class="modal-window" id="modalSignup" method="post">
                 <span class="close" id="closeSignUp">&times</span>
@@ -46,50 +43,49 @@
             </form>
         </div>
     </div>
-   
-    <div class="page-container" id="configPage">
-            <div class="header"><h1>Instagram bot admin page</h1></div>
-            <div class="content-container">
-                <div class="content-left"></div>
 
-                <div class="content-center">
-                    <div class="block">
-                        <form id="configForm">
-                            <div class = "config-form-group">
-                                <label class ="form-left" >instagram username</label><input class ="submit-input" name="instaUsername" type="text" value="" placeholder="Johnsmith" />
-                            </div>
-                            <div class = "config-form-group">
-                                <label class ="form-left" >instagram password</label><input class ="submit-input" name="instaPassword" type="text" value="" placeholder="Password" />
-                            </div>
-                            <div class = "config-form-group">
-                                <label class ="form-left">telegram username</label><input class ="submit-input" name="telegramUsername" type="text" value="" placeholder="Johnsmith" />
-                            </div>
-                            <div class = "config-form-group">
-                                <a class ="form-left" href="https://t.me/isdTestBot">Go to the telegram bot</a><label id="verifyKeyLabel"/>
-                                   
-                            </div>
-                            <div class = "config-form-group">
-                                <label class="form-left">tags</label><input class ="submit-input" name="tags" type="text" value="" placeholder="kittens, cats" />
-                            </div>
-                            <div class="get-save-buttons">
-                                <button id="getConfig" class="config-submit">Get configuration</button>
-                                <button id="saveConfig" class="config-submit">Save configuration</button>
-                            </div>
-                            <div id="ajaxResult"></div>
-                        </form>
-                    </div>
-                    <div class="block">
-                        <h3>Statistics</h3>
-                        <div>Processed <span id="processed_posts">1012</span> posts</div>
-                        <div>Matched 21 photos</div>
-                        <div>Matched tags: 12</div>
-                        <div>Matched topics: 9</div>
-                    </div>
+    <div class="page-container" id="configPage">
+        <div class="header"><h1>Instagram bot admin page</h1></div>
+        <div class="content-container">
+            <div class="content-left"></div>
+
+            <div class="content-center">
+                <div class="block">
+                    <form id="configForm">
+                        <div class="config-form-group">
+                            <label class="form-left">instagram username</label><input class="submit-input" name="instaUsername" type="text" value="" placeholder="Johnsmith" />
+                        </div>
+                        <div class="config-form-group">
+                            <label class="form-left">instagram password</label><input class="submit-input" name="instaPassword" type="text" value="" placeholder="Password" />
+                        </div>
+                        <div class="config-form-group">
+                            <label class="form-left">telegram username</label><input class="submit-input" name="telegramUsername" type="text" value="" placeholder="Johnsmith" />
+                        </div>
+                        <div class="config-form-group">
+                            <a class="form-left" href="https://t.me/isdTestBot">Go to the telegram bot</a><label id="verifyKeyLabel" />
+                        </div>
+                        <div class="config-form-group">
+                            <label class="form-left">tags</label><input class="submit-input" name="tags" type="text" value="" placeholder="kittens, cats" />
+                        </div>
+                        <div class="get-save-buttons">
+                            <button id="getConfig" class="config-submit">Get configuration</button>
+                            <button id="saveConfig" class="config-submit">Save configuration</button>
+                        </div>
+                        <div id="ajaxResult"></div>
+                    </form>
                 </div>
-                <div class="content-right"></div>
+                <div class="block">
+                    <h3>Statistics</h3>
+                    <div>Processed <span id="processed_posts">1012</span> posts</div>
+                    <div>Matched 21 photos</div>
+                    <div>Matched tags: 12</div>
+                    <div>Matched topics: 9</div>
+                </div>
             </div>
-            <div class="footer">© 2017 IntelliGram-D</div>
+            <div class="content-right"></div>
         </div>
+        <div class="footer">© 2017 IntelliGram-D</div>
+    </div>
 
 
 

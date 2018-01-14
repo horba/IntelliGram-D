@@ -4,8 +4,7 @@ namespace InstaBotPrototype.Services
 {
     public interface IAuthenticationService
     {
-        String Login(LoginModel model);
-        String Register(LoginModel model);
-        int? GetVerifyKey(LoginModel model);
+        int Login(LoginModel model);
+        int Register(LoginModel model);
     }
 }
