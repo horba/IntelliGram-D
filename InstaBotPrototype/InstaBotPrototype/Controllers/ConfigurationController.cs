@@ -9,9 +9,7 @@ namespace InstaBotPrototype.Controllers
     [Route("api/[controller]")]
     public class ConfigurationController : Controller
     {
-        
-        static string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
-        ConfigService config = new ConfigService(connectionString);
+        string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
         DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
 
         // GET api/configuration
@@ -20,19 +18,24 @@ namespace InstaBotPrototype.Controllers
         {
             if (IsLoggedIn())
             {
-                return config.GetDefaultConfig();
+                // code here
+                return new ConfigurationModel { InstaUsername = "JohnSmith", InstaPassword = "Passw0rd", TelegramUsername = "telegaN", Tags = "cats", Topics = "Nature, Lake" };
             }
+
             return null;
         }
 
         // GET api/configuration/5
         [HttpGet("{id}")]
-        public ConfigurationModel Get(int id)
+        public string Get(int id)
         {
             if (IsLoggedIn())
             {
-                return config.GetConfig(id);
+                // code here
+
+                return "value";
             }
+
             return null;
         }
 
@@ -40,10 +43,12 @@ namespace InstaBotPrototype.Controllers
         [HttpPost]
         public IActionResult Post([FromForm]ConfigurationModel model)
         {
+
             if (IsLoggedIn())
             {
-                config.SaveConfig(model);
+                // code here
             }
+
             return Ok(model);
         }
 
@@ -72,11 +77,9 @@ namespace InstaBotPrototype.Controllers
             DbConnection conn = null;
             try
             {
-                var id = Request.Cookies["Id"];
+                var id = Request.Cookies["sessionID"];
                 if (id != null)
                 {
-                    var cookieId = Convert.ToInt32(Request.Cookies["Id"]);
-
                     conn = factory.CreateConnection();
                     conn.ConnectionString = connectionString;
 
@@ -85,7 +88,7 @@ namespace InstaBotPrototype.Controllers
                     param.Value = id;
 
                     var check = factory.CreateCommand();
-                    check.CommandText = "select count(Id) from dbo.Sessions where Id = @Id";
+                    check.CommandText = "select count(SessionId) from dbo.Sessions where SessionId = @Id";
                     check.Parameters.Add(param);
                     check.Connection = conn;
 
