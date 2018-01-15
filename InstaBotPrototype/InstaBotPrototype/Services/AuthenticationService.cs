@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using InstaBotPrototype.Models;
 using System.Configuration;
 using System.Data.Common;
