@@ -1,57 +1,81 @@
-﻿using InstaBotPrototype.Models;
+using System;
+using InstaBotPrototype.Models;
 using System.Configuration;
 using System.Data.Common;
 
 namespace InstaBotPrototype.Services
 {
-    public class AuthenticationService
+    public class AuthenticationService : IAuthenticationService
     {
         string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
         DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
 
-        public int Login(LoginModel model)
+        public int? GetVerifyKey(LoginModel model)
         {
-            var dbConnection = factory.CreateConnection();
-            dbConnection.ConnectionString = connectionString;
-
-            var select = factory.CreateCommand();
-            select.Connection = dbConnection;
-            select.CommandText = $"select Id from dbo.Users where Login = @login and Password = @password";
-            
-            var login = CreateParameter("@login", model.Login);
-            var password = CreateParameter("@password", model.Password);
-
-            select.Parameters.AddRange(new[] { login, password });
-
-            dbConnection.Open();
-
-            var reader = select.ExecuteReader();
-            reader.Read();
-            var id = reader.GetValue(0) as int?;
-
-            if (!id.HasValue)
+            int? verifyKey = null;
+            using (var dbConnection = factory.CreateConnection())
             {
-                id = -1;
+                dbConnection.ConnectionString = connectionString;
+                dbConnection.Open();
+                var selectID = factory.CreateCommand();
+                selectID.Connection = dbConnection;
+                selectID.CommandText = $"SELECT Id FROM dbo.Users WHERE Login = @login and Password = @password";
+                var login = CreateParameter("@login", model.Login);
+                var password = CreateParameter("@password", model.Password);
+                selectID.Parameters.AddRange(new[] { login, password });
+                var readerID = selectID.ExecuteReader();
+                if (readerID.HasRows)
+                {
+                    readerID.Read();
+                    int id = readerID.GetInt32(0);
+                    readerID.Close();
+                    var selectTelegram = factory.CreateCommand();
+                    selectTelegram.Connection = dbConnection;
+                    selectTelegram.CommandText = $"SELECT TelegramVerificationKey FROM dbo.TelegramVerification WHERE UserId = @id";
+                    selectTelegram.Parameters.Add(CreateParameter("@id", id));
+                    var readerKey = selectTelegram.ExecuteReader();
+                    if (readerKey.HasRows) {
+                        readerKey.Read();
+                        verifyKey = readerKey.GetInt32(0);
+                    }
+                    readerKey.Close();
+                }
             }
-            else
-            {
-                var updateLastLogin = factory.CreateCommand();
-                updateLastLogin.Connection = dbConnection;
-                updateLastLogin.CommandText = $"update dbo.Users set LastLogin = SYSDATETIME() where Id = @id";
-
-                var pId = CreateParameter("@id", id.Value);
-
-                updateLastLogin.Parameters.Add(pId);
-
-                updateLastLogin.ExecuteNonQuery();
-            }
-
-            dbConnection.Close();
-
-            return id.Value;
+            return verifyKey;
         }
 
-        public int Register(LoginModel model)
+        public String Login(LoginModel model)
+        {
+            Guid? sessionID = null;
+            using (var dbConnection = factory.CreateConnection())
+            {
+                dbConnection.ConnectionString = connectionString;
+                dbConnection.Open();
+                var selectID = factory.CreateCommand();
+                selectID.Connection = dbConnection;
+                selectID.CommandText = $"SELECT Id FROM dbo.Users WHERE Login = @login and Password = @password";
+                var login = CreateParameter("@login", model.Login);
+                var password = CreateParameter("@password", model.Password);
+                selectID.Parameters.AddRange(new[] { login, password });
+                var reader = selectID.ExecuteReader();
+                if (reader.HasRows)
+                {
+                    reader.Read();
+                    int id = reader.GetInt32(0);
+                    reader.Close();
+                    sessionID = Guid.NewGuid();
+                    var insertSession = factory.CreateCommand();
+                    insertSession.Connection = dbConnection;
+                    insertSession.CommandText = $"INSERT INTO dbo.Sessions (UserId,SessionId) VALUES (@id,@sessionID)";;
+                    insertSession.Parameters.Add(CreateParameter("@id", id));
+                    insertSession.Parameters.Add(CreateParameter("@sessionID", sessionID));
+                    insertSession.ExecuteNonQuery();
+                }
+            }
+            return sessionID?.ToString();
+        }
+
+        public String Register(LoginModel model)
         {
             var dbConnection = factory.CreateConnection();
             dbConnection.ConnectionString = connectionString;
@@ -60,20 +84,19 @@ namespace InstaBotPrototype.Services
 
             var insert = factory.CreateCommand();
             insert.Connection = dbConnection;
-            insert.CommandText = $"insert into table dbo.Users (Login, Email, Password, RegisterDate) values (@login, @email, @password, SYSDATETIME())";
+            insert.CommandText = $"INSERT INTO dbo.Users (Login, Email, Password, RegisterDate) VALUES (@login, @email, @password, SYSDATETIME())";
 
             var login = CreateParameter("@login", model.Login);
             var email = CreateParameter("@email", model.Email);
             var password = CreateParameter("@password", model.Password);
 
             insert.Parameters.AddRange(new[] { login, email, password });
-
+            insert.ExecuteNonQuery();
             dbConnection.Close();
 
             return Login(model);
         }
-
-        DbParameter CreateParameter(string name, object value)
+        private DbParameter CreateParameter(string name, object value)
         {
             var parameter = factory.CreateParameter();
             parameter.ParameterName = name;

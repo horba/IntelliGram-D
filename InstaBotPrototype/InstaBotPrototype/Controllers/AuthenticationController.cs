@@ -1,21 +1,45 @@
 ﻿using InstaBotPrototype.Models;
 using Microsoft.AspNetCore.Mvc;
+using InstaBotPrototype.Services;
+using System.Net;
 
 namespace InstaBotPrototype.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     public class AuthenticationController : Controller
     {
-        [HttpGet]
-        IActionResult Login([FromBody]LoginModel loginModel)
-        {
-            return Ok();
-        }
-
+        private readonly IAuthenticationService _authenticationService;
+        public AuthenticationController (IAuthenticationService service) {
+            _authenticationService = service;
+        }        
         [HttpPost]
-        IActionResult Register([FromBody]LoginModel loginModel)
+        public IActionResult Login (LoginModel loginModel)
         {
-            return Ok();
+            var loginResult = _authenticationService.Login(loginModel);
+            if (loginResult != null)
+                return new ObjectResult(new { sessionID = loginResult,verifyKey = _authenticationService.GetVerifyKey(loginModel)});
+            else {
+                ObjectResult result = new ObjectResult(new { errorMessage = "Wrong login or password" })
+                {
+                    StatusCode = (int) HttpStatusCode.NotFound
+                };
+                return result;
+            }       
+        }
+        [HttpPost]
+        public IActionResult Register(LoginModel loginModel)
+        {
+            var registerResult = _authenticationService.Register(loginModel);
+            if (registerResult != null)
+                return new ObjectResult(new { sessionID = registerResult, verifyKey = _authenticationService.GetVerifyKey(loginModel)});
+            else
+            {
+                ObjectResult result = new ObjectResult(new { errorMessage = "Something wrong has happened during registrartion"})
+                {
+                    StatusCode = (int) HttpStatusCode.NotFound
+                };
+                return result;
+            }
         }
     }
 }

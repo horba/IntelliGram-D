@@ -1,4 +1,6 @@
-﻿namespace InstaBotPrototype.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace InstaBotPrototype.Models
 {
     public class LoginModel
     {
