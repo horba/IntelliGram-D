@@ -219,7 +219,7 @@ namespace InstaBotPrototype.Services
             }
         }
 
-        public int? AddUser(string login, string email, string password)
+        public int AddUser(string login, string email, string password)
         {
             var text = $"INSERT INTO dbo.Users (Login, Email, Password, RegisterDate) VALUES (@login, @email, @password, SYSDATETIME())";
             var p1 = CreateParameter("@login", login);
@@ -231,7 +231,7 @@ namespace InstaBotPrototype.Services
                 insert.ExecuteNonQuery();
             }
 
-            return GetUserId(login, password);
+            return GetUserId(login, password).Value;
         }
 
         private DbCommand CreateCommand(string text, params DbParameter[] args)

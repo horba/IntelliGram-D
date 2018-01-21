@@ -10,7 +10,7 @@ namespace InstaBotPrototype.Services
         int AddTag(string tag);
         void AddTagsToConfigId(IEnumerable<TagModel> tags, int configId);
         int AddTopic(string topic);
-        void AddUser(string login, string email, string password);
+        int AddUser(string login, string email, string password);
         void Dispose();
         int? GetTagId(string tag);
         IEnumerable<TagModel> GetTagsByConfigId(int configId);
