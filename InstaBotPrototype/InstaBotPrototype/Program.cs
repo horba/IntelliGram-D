@@ -2,12 +2,14 @@
 using Microsoft.AspNetCore.Hosting;
 using System;
 using System.IO;
+using log4net;
+using InstaBotPrototype.Services;
 
 namespace InstaBotPrototype
 {
     public class Program
     {
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog log = Logger.GetLog<Program>();
 
         public static void Main(string[] args)
         {
