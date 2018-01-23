@@ -67,7 +67,7 @@ namespace InstaBotPrototype.Services
                     sessionID = Guid.NewGuid();
                     var insertSession = factory.CreateCommand();
                     insertSession.Connection = dbConnection;
-                    insertSession.CommandText = $"INSERT INTO dbo.Sessions (UserId,SessionId) VALUES (@id,@sessionID)"; ;
+                    insertSession.CommandText = $"INSERT INTO dbo.Sessions (UserId,SessionId) VALUES (@id,@sessionID)";
                     insertSession.Parameters.Add(CreateParameter("@id", id));
                     insertSession.Parameters.Add(CreateParameter("@sessionID", sessionID));
                     insertSession.ExecuteNonQuery();
