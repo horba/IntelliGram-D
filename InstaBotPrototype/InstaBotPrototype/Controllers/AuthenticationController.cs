@@ -1,6 +1,6 @@
 ﻿using InstaBotPrototype.Models;
-using Microsoft.AspNetCore.Mvc;
 using InstaBotPrototype.Services;
+using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
 namespace InstaBotPrototype.Controllers
@@ -9,34 +9,39 @@ namespace InstaBotPrototype.Controllers
     public class AuthenticationController : Controller
     {
         private readonly IAuthenticationService _authenticationService;
-        public AuthenticationController (IAuthenticationService service) {
-            _authenticationService = service;
-        }        
+        public AuthenticationController(IAuthenticationService service) => _authenticationService = service;
+
         [HttpPost]
-        public IActionResult Login (LoginModel loginModel)
+        public IActionResult Login(LoginModel loginModel)
         {
             var loginResult = _authenticationService.Login(loginModel);
             if (loginResult != null)
-                return new ObjectResult(new { sessionID = loginResult,verifyKey = _authenticationService.GetVerifyKey(loginModel)});
-            else {
-                ObjectResult result = new ObjectResult(new { errorMessage = "Wrong login or password" })
+            {
+                return new ObjectResult(new { sessionID = loginResult, verifyKey = _authenticationService.GetVerifyKey(loginModel) });
+            }
+            else
+            {
+                var result = new ObjectResult(new { errorMessage = "Wrong login or password" })
                 {
-                    StatusCode = (int) HttpStatusCode.NotFound
+                    StatusCode = (int)HttpStatusCode.NotFound
                 };
                 return result;
-            }       
+            }
         }
+
         [HttpPost]
         public IActionResult Register(LoginModel loginModel)
         {
             var registerResult = _authenticationService.Register(loginModel);
             if (registerResult != null)
-                return new ObjectResult(new { sessionID = registerResult, verifyKey = _authenticationService.GetVerifyKey(loginModel)});
+            {
+                return new ObjectResult(new { sessionID = registerResult, verifyKey = _authenticationService.GetVerifyKey(loginModel) });
+            }
             else
             {
-                ObjectResult result = new ObjectResult(new { errorMessage = "Something wrong has happened during registrartion"})
+                var result = new ObjectResult(new { errorMessage = "Something wrong has happened during registrartion" })
                 {
-                    StatusCode = (int) HttpStatusCode.NotFound
+                    StatusCode = (int)HttpStatusCode.NotFound
                 };
                 return result;
             }

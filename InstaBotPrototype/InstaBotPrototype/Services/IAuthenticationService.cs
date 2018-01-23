@@ -1,11 +1,11 @@
-﻿using System;
-using InstaBotPrototype.Models;
+﻿using InstaBotPrototype.Models;
+
 namespace InstaBotPrototype.Services
 {
     public interface IAuthenticationService
     {
         int? GetVerifyKey(LoginModel model);
-        String Login(LoginModel model);
-        String Register(LoginModel model);
+        string Login(LoginModel model);
+        string Register(LoginModel model);
     }
 }

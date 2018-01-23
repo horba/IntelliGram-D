@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Web.Configuration;
-using System.Web.Script.Serialization;
 
 namespace InstaBotPrototype.Services.AI
 {
@@ -32,36 +32,46 @@ namespace InstaBotPrototype.Services.AI
 
                 var contentString = await response.Content.ReadAsStringAsync();
 
-                var request = new JavaScriptSerializer().Deserialize<Request>(contentString);
+                var request = JsonConvert.DeserializeObject<Request>(contentString);
 
-                return request.description.tags;
+                return request.Description.Tags;
             }
         }
 
         class Request
         {
-            public Description description;
-            public string requestId;
-            public Metadata metadata;
+            [JsonProperty("description")]
+            public Description Description { get; set; }
+            [JsonProperty("requestId")]
+            public string RequestId { get; set; }
+            [JsonProperty("metadata")]
+            public Metadata Metadata { get; set; }
+        }
 
-            public class Description
-            {
-                public List<string> tags;
-                public List<Caption> captions;
+        public class Description
+        {
+            [JsonProperty("tags")]
+            public List<string> Tags { get; set; }
+            [JsonProperty("captions")]
+            public List<Caption> Captions { get; set; }
 
-                public class Caption
-                {
-                    public string text;
-                    public double confidence;
-                }
-            }
+        }
+        public class Caption
+        {
+            [JsonProperty("text")]
+            public string Text { get; set; }
+            [JsonProperty("confidence")]
+            public double Confidence { get; set; }
+        }
 
-            public class Metadata
-            {
-                public int height;
-                public int width;
-                public string format;
-            }
+        public class Metadata
+        {
+            [JsonProperty("height")]
+            public int Height { get; set; }
+            [JsonProperty("width")]
+            public int Width { get; set; }
+            [JsonProperty("format")]
+            public string Format { get; set; }
         }
     }
 }

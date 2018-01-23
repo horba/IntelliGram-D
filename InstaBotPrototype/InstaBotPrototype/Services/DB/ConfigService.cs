@@ -1,9 +1,9 @@
-﻿using System;
-using System.Data;
-using System.Configuration;
+﻿using InstaBotPrototype.Services.DB;
+using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
 using System.Data.SqlClient;
-using InstaBotPrototype.Services.DB;
 
 namespace InstaBotPrototype.Models
 {
@@ -13,43 +13,33 @@ namespace InstaBotPrototype.Models
         private readonly char[] trimChar = { ' ', '\n', '\t' };
         private const int fieldLength = 128;
 
-        public ConfigService()
-        {
-            connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
-        }
+        public ConfigService() => connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
 
-        public ConfigService(string connectionStr)
-        {
-            connectionString = connectionStr;
-        }
+        public ConfigService(string connectionStr) => connectionString = connectionStr;
 
         #region IConfigService implementation
 
-        public ConfigurationModel GetDefaultConfig()
+        public ConfigurationModel GetDefaultConfig() => new ConfigurationModel
         {
-            return new ConfigurationModel
-            {
-                InstaUsername = "defaultName",
-                InstaPassword = "defaultPass",
-                TelegramUsername = "defaultTelegram",
-                Tags = new TagModel[] { new TagModel { Tag = "tag1" }, new TagModel { Tag = "tag2" } },
-                Topics = new TopicModel[] { new TopicModel { Topic = "topic1" }, new TopicModel { Topic = "topic2" } }
-            };
-        }
+            InstaUsername = "defaultName",
+            InstaPassword = "defaultPass",
+            TelegramUsername = "defaultTelegram",
+            Tags = new TagModel[] { new TagModel { Tag = "tag1" }, new TagModel { Tag = "tag2" } },
+            Topics = new TopicModel[] { new TopicModel { Topic = "topic1" }, new TopicModel { Topic = "topic2" } }
+        };
 
         public ConfigurationModel GetConfig(int? id)
         {
             if (id != null && id > 0)
             {
                 var configModel = new ConfigurationModel();
-                using (var connection =
-                    new SqlConnection(connectionString))
+                using (var connection = new SqlConnection(connectionString))
                 {
                     try
                     {
                         connection.Open();
-                        string getConfigQuery =
-                            "SELECT InstaUsername, InstaPassword, TelegramUsername " +
+                        var getConfigQuery =
+                            "SELECT InstaUsername, InstaPassword, TelegramUsername" +
                             "FROM Configuration WHERE ConfigID = @ConfigID";
 
                         using (var command = new SqlCommand(getConfigQuery, connection))
@@ -64,7 +54,7 @@ namespace InstaBotPrototype.Models
                             var reader = command.ExecuteReader();
 
                             // Get main info
-                            bool configExists = reader.HasRows;
+                            var configExists = reader.HasRows;
                             if (configExists)
                             {
                                 try
@@ -102,13 +92,12 @@ namespace InstaBotPrototype.Models
 
         public void SaveConfig(ConfigurationModel config)
         {
-            using (var connection =
-                new SqlConnection(connectionString))
+            using (var connection = new SqlConnection(connectionString))
             {
                 try
                 {
                     connection.Open();
-                    bool isInstagramUsernameUnique = IsInstagramUsernameUnique(config.InstaUsername, connection);
+                    var isInstagramUsernameUnique = IsInstagramUsernameUnique(config.InstaUsername, connection);
 
                     if (config.ConfigId == null && isInstagramUsernameUnique)
                     {
@@ -139,16 +128,16 @@ namespace InstaBotPrototype.Models
         {
             try
             {
-                string addConfigQuery =
+                var addConfigQuery =
                     "INSERT INTO Configuration (InstaUsername, InstaPassword, TelegramUsername) " +
                     "VALUES (@InstaUsername, @InstaPassword,  @TelegramUsername); " +
                     "SELECT @ConfigID = SCOPE_IDENTITY();";
 
-                SqlCommand addConfigCmd = new SqlCommand(addConfigQuery, connection);
+                var addConfigCmd = new SqlCommand(addConfigQuery, connection);
                 addConfigCmd.Parameters.Add("@InstaUsername", SqlDbType.NVarChar, fieldLength).Value = model.InstaUsername;
                 addConfigCmd.Parameters.Add("@InstaPassword", SqlDbType.NVarChar, fieldLength).Value = model.InstaPassword;
                 addConfigCmd.Parameters.Add("@TelegramUsername", SqlDbType.NVarChar, fieldLength).Value = model.TelegramUsername;
-                SqlParameter configID = new SqlParameter()
+                var configID = new SqlParameter()
                 {
                     ParameterName = "@ConfigID",
                     SqlDbType = SqlDbType.Int,
@@ -173,7 +162,8 @@ namespace InstaBotPrototype.Models
 
         private void UpdateConfig(ConfigurationModel model, SqlConnection connection)
         {
-            string updateQuery = "UPDATE Configuration " +
+            var updateQuery =
+                "UPDATE Configuration " +
                 "SET InstaPassword = @InstaPassword, " +
                 "TelegramUsername = @TelegramUsername " +
                 "WHERE ConfigID = @ConfigID";
@@ -185,7 +175,7 @@ namespace InstaBotPrototype.Models
 
             TrimTagsTopics(model);
 
-            string deleteTags =
+            var deleteTags =
                 "DELETE FROM ConfigTag WHERE ConfigID = @ConfigID";
             var deleteTagsCmd = new SqlCommand(deleteTags, connection);
             deleteTagsCmd.Parameters.Add(new SqlParameter() { ParameterName = "@ConfigID", SqlDbType = SqlDbType.Int, SqlValue = model.ConfigId });
@@ -193,7 +183,7 @@ namespace InstaBotPrototype.Models
 
             AddTagsToConfigId(model.Tags, (int)model.ConfigId, connection);
 
-            string deleteTopics =
+            var deleteTopics =
                 "DELETE FROM ConfigTopic WHERE ConfigID = @ConfigID";
             var deleteTopicsCmd = new SqlCommand(deleteTopics, connection);
             deleteTopicsCmd.Parameters.Add(new SqlParameter() { ParameterName = "@ConfigID", SqlDbType = SqlDbType.Int, SqlValue = model.ConfigId });
@@ -219,7 +209,7 @@ namespace InstaBotPrototype.Models
         {
             if (instaUsername != null)
             {
-                string checkUniqueInstagram =
+                var checkUniqueInstagram =
                 "SELECT COUNT(ConfigID) FROM Configuration WHERE InstaUsername = @InstaUsername";
 
                 using (var checkUniqueInstagramCmd = new SqlCommand(checkUniqueInstagram, connection))
@@ -246,7 +236,7 @@ namespace InstaBotPrototype.Models
         {
             if (configId != null)
             {
-                string getTopic =
+                var getTopic =
                     "SELECT T.Topic " +
                     "FROM ConfigTopic CT  " +
                     "JOIN Topic T ON T.TopicID = CT.TopicID " +
@@ -286,7 +276,7 @@ namespace InstaBotPrototype.Models
         {
             if (configId != null)
             {
-                string getTag =
+                var getTag =
                     "SELECT T.Tag " +
                     "FROM ConfigTag CT " +
                     "JOIN Tag T ON T.TagID = CT.TagID " +
@@ -324,8 +314,7 @@ namespace InstaBotPrototype.Models
 
         private int AddTag(string tag, SqlConnection connection)
         {
-            var addTagCmd =
-                new SqlCommand("INSERT INTO Tag (Tag) VALUES (@Tag);SELECT @TagID = SCOPE_IDENTITY()", connection);
+            var addTagCmd = new SqlCommand("INSERT INTO Tag (Tag) VALUES (@Tag);SELECT @TagID = SCOPE_IDENTITY()", connection);
             addTagCmd.Parameters.Add(new SqlParameter() { ParameterName = "@Tag", SqlDbType = SqlDbType.NVarChar, Value = tag });
             var tagID = new SqlParameter
             {
@@ -341,8 +330,7 @@ namespace InstaBotPrototype.Models
 
         private int AddTopic(string topic, SqlConnection connection)
         {
-            var addTopicCmd =
-                    new SqlCommand("INSERT INTO Topic (Topic) VALUES (@Topic);SELECT @TopicID = SCOPE_IDENTITY()", connection);
+            var addTopicCmd = new SqlCommand("INSERT INTO Topic (Topic) VALUES (@Topic);SELECT @TopicID = SCOPE_IDENTITY()", connection);
             addTopicCmd.Parameters.Add(new SqlParameter() { ParameterName = "@Topic", SqlDbType = SqlDbType.NVarChar, Value = topic });
             var topicID = new SqlParameter
             {
@@ -361,7 +349,7 @@ namespace InstaBotPrototype.Models
             using (var tagExistsCmd = new SqlCommand("SELECT COUNT(TagID) FROM Tag WHERE Tag = @Tag;", connection))
             {
                 tagExistsCmd.Parameters.Add("@Tag", SqlDbType.NVarChar, fieldLength).Value = tag;
-                bool tagExists = Convert.ToBoolean(tagExistsCmd.ExecuteScalar());
+                var tagExists = Convert.ToBoolean(tagExistsCmd.ExecuteScalar());
 
                 if (tagExists)
                 {
@@ -387,7 +375,7 @@ namespace InstaBotPrototype.Models
             using (var topicExistsCmd = new SqlCommand("SELECT COUNT(TopicID) FROM Topic WHERE Topic = @Topic", connection))
             {
                 topicExistsCmd.Parameters.Add("@Topic", SqlDbType.NVarChar, fieldLength).Value = topic;
-                bool topicExists = Convert.ToBoolean(topicExistsCmd.ExecuteScalar());
+                var topicExists = Convert.ToBoolean(topicExistsCmd.ExecuteScalar());
 
                 if (topicExists)
                 {
@@ -422,7 +410,7 @@ namespace InstaBotPrototype.Models
             topicCommand.Parameters.Add(topicID);
             topicCommand.Parameters.Add("@Topic", SqlDbType.NVarChar, fieldLength).Value = topic.Trim(trimChar);
 
-            bool result = Convert.ToBoolean(topicCommand.ExecuteScalar());
+            var result = Convert.ToBoolean(topicCommand.ExecuteScalar());
             topicId = result ? (int)topicID.Value : -1;
 
             return result;
