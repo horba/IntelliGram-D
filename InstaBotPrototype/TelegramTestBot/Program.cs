@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Configuration;
 using System.Collections.Generic;
+using System.Configuration;
+using System.Data.Common;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -8,7 +9,6 @@ using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using System.Data.Common;
 
 namespace Telegram.Bot.Example
 {
@@ -66,17 +66,14 @@ namespace Telegram.Bot.Example
 
         #region Bot commands
 
-        private static async void ShowHelp(Message message)
-        {
-            await bot.SendTextMessageAsync(message.Chat.Id, "Hi there! This bot helps you getting Instagram photos.");
-        }
+        private static async void ShowHelp(Message message) => await bot.SendTextMessageAsync(message.Chat.Id, "Hi there! This bot helps you getting Instagram photos.");
 
         private static async void DialogStart(Message message)
         {
-            bool isNewUser = await AddUser(message);
+            var isNewUser = await AddUser(message);
 
-            string answer = isNewUser
-                ? $"Hello, {message.Chat.FirstName}!" 
+            var answer = isNewUser
+                ? $"Hello, {message.Chat.FirstName}!"
                 : $"I'm glad to see you again, {message.Chat.FirstName}";
 
             await bot.SendTextMessageAsync(message.Chat.Id, answer);
@@ -104,7 +101,7 @@ namespace Telegram.Bot.Example
 
         private static async void DeleteUser(Message message)
         {
-            string answer = await DeleteUser((int)message.Chat.Id)
+            var answer = await DeleteUser((int)message.Chat.Id)
                 ? "Deleted "
                 : "You have been already deleted";
             await bot.SendTextMessageAsync(message.Chat.Id, answer);
@@ -114,10 +111,7 @@ namespace Telegram.Bot.Example
 
         #region Helper methods
 
-        private static async void SendMessage(long chatId, string text)
-        {
-            await bot.SendTextMessageAsync(chatId, text);
-        }
+        private static async void SendMessage(long chatId, string text) => await bot.SendTextMessageAsync(chatId, text);
 
         #endregion
 
@@ -125,7 +119,7 @@ namespace Telegram.Bot.Example
 
         private static async void VerifyCommand(string telegramText, long chatId)
         {
-            if (long.TryParse(telegramText, out long telegramVerificationKey))
+            if (long.TryParse(telegramText, out var telegramVerificationKey))
             {
                 if (await Verify(telegramVerificationKey, chatId))
                 {
@@ -138,7 +132,7 @@ namespace Telegram.Bot.Example
             }
             else
             {
-                SendMessage(chatId, "Please, enter correct verification code"); 
+                SendMessage(chatId, "Please, enter correct verification code");
             }
         }
 
@@ -153,14 +147,14 @@ namespace Telegram.Bot.Example
                 using (var connection = new SqlConnection(connectionString))
                 {
                     await connection.OpenAsync();
-                    string getUsersQuery = "SELECT * FROM TelegramIntegration";
+                    var getUsersQuery = "SELECT * FROM TelegramIntegration";
                     using (var getUsersCmd = new SqlCommand(getUsersQuery, connection))
                     {
-                        string users = String.Empty;
+                        var users = string.Empty;
                         var reader = await getUsersCmd.ExecuteReaderAsync();
                         if (reader.HasRows)
                         {
-                            string currentLastName = "";
+                            var currentLastName = "";
                             while (reader.Read())
                             {
                                 currentLastName = reader.IsDBNull(2) ? "null" : reader.GetString(2);
@@ -181,7 +175,7 @@ namespace Telegram.Bot.Example
 
         private static async Task<bool> UserExists(int chatId, SqlConnection connection)
         {
-            string checkExistsQuery = "SELECT COUNT(ChatId) FROM TelegramIntegration WHERE ChatId = @ChatId";
+            var checkExistsQuery = "SELECT COUNT(ChatId) FROM TelegramIntegration WHERE ChatId = @ChatId";
             using (var checkExistsCmd = new SqlCommand(checkExistsQuery, connection))
             {
                 checkExistsCmd.Parameters.Add(new SqlParameter() { ParameterName = "@ChatId", SqlDbType = System.Data.SqlDbType.Int, Value = chatId });
@@ -196,7 +190,7 @@ namespace Telegram.Bot.Example
                 await connection.OpenAsync();
                 if (!await UserExists((int)message.Chat.Id, connection))
                 {
-                    string addQuery =
+                    var addQuery =
                         "INSERT INTO TelegramIntegration " +
                         "(ChatId, FirstName, LastName, UserId) " +
                         "VALUES(@ChatId, @FirstName, @LastName, @UserId)";
@@ -224,7 +218,7 @@ namespace Telegram.Bot.Example
                 await connection.OpenAsync();
                 if (await UserExists(chatId, connection))
                 {
-                    string deleteQuery = "DELETE FROM TelegramIntegration WHERE ChatId = @ChatId";
+                    var deleteQuery = "DELETE FROM TelegramIntegration WHERE ChatId = @ChatId";
                     using (var deleteCmd = new SqlCommand(deleteQuery, connection))
                     {
                         deleteCmd.Parameters.Add(new SqlParameter() { ParameterName = "@ChatId", SqlDbType = System.Data.SqlDbType.Int, Value = chatId });
@@ -238,11 +232,11 @@ namespace Telegram.Bot.Example
 
         private static async Task<bool> CheckVerification(long chatId)
         {
-            using(var connection = new SqlConnection(connectionString))
+            using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
-                string checkVerificationQuery = "SELECT UserId FROM TelegramIntegration WHERE ChatId = @ChatId";
-                using(var checkVerificationCmd = new SqlCommand(checkVerificationQuery, connection))
+                var checkVerificationQuery = "SELECT UserId FROM TelegramIntegration WHERE ChatId = @ChatId";
+                using (var checkVerificationCmd = new SqlCommand(checkVerificationQuery, connection))
                 {
                     checkVerificationCmd.Parameters.Add(new SqlParameter() { ParameterName = "@ChatId", Value = chatId });
                     return Convert.ToBoolean(await checkVerificationCmd.ExecuteScalarAsync() != DBNull.Value);
@@ -255,7 +249,7 @@ namespace Telegram.Bot.Example
             using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
-                string checkVerificationKeyQuery =
+                var checkVerificationKeyQuery =
                     "SELECT UserId " +
                     "FROM TelegramVerification " +
                     "WHERE TelegramVerificationKey = @TelegramVerificationKey";
@@ -281,7 +275,7 @@ namespace Telegram.Bot.Example
 
                 async Task UpdateUserId(int userId)
                 {
-                    string insertUserIdQuery = "UPDATE TelegramIntegration SET UserId = @UserId WHERE ChatId = @ChatId";
+                    var insertUserIdQuery = "UPDATE TelegramIntegration SET UserId = @UserId WHERE ChatId = @ChatId";
 
                     using (var insertUserIdCommand = new SqlCommand(insertUserIdQuery, connection))
                     {
@@ -293,7 +287,7 @@ namespace Telegram.Bot.Example
 
                 async Task DeleteVerificationRecord()
                 {
-                    string deleteVerificationQuery = "DELETE FROM TelegramVerification WHERE TelegramVerificationKey = @TelegramVerificationKey";
+                    var deleteVerificationQuery = "DELETE FROM TelegramVerification WHERE TelegramVerificationKey = @TelegramVerificationKey";
 
                     using (var deleteVerificationCommand = new SqlCommand(deleteVerificationQuery, connection))
                     {
@@ -322,17 +316,17 @@ namespace Telegram.Bot.Example
                     return;
                 }
 
-                bool isVerified = await CheckVerification(message.Chat.Id);
+                var isVerified = await CheckVerification(message.Chat.Id);
 
                 var command = new BotCommand() { Command = message.Text };
-                
+
 
                 if (commandDict.ContainsKey(command.Command))
                 {
                     command.Access = commandDict[command.Command];
                 }
 
-                botAction.TryGetValue(command, out BotAction currentAction);
+                botAction.TryGetValue(command, out var currentAction);
 
                 if (command.Access == AccessModifier.Public && currentAction != null || isVerified)
                 {
@@ -362,10 +356,7 @@ namespace Telegram.Bot.Example
             }
         }
 
-        private static void BotOnReceiveError(object sender, ReceiveErrorEventArgs receiveErrorEventArgs)
-        {
-            Debugger.Break();
-        }
+        private static void BotOnReceiveError(object sender, ReceiveErrorEventArgs receiveErrorEventArgs) => Debugger.Break();
 
         #endregion
     }
