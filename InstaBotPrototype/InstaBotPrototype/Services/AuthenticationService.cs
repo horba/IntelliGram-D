@@ -9,7 +9,6 @@ namespace InstaBotPrototype.Services
     {
         string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
         DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
-
         public int? GetVerifyKey(LoginModel model)
         {
             int? verifyKey = null;

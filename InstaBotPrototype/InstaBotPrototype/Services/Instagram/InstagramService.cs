@@ -40,7 +40,7 @@ namespace InstaBotPrototype.Services.Instagram
             return posts.Images;
         }
 
-        public IEnumerable<string> GetLatestPosts(string username)
+        public IEnumerable<ImageData> GetLatestPosts(string username)
         {
             string userId = GetUserId(username);
             List<ImageData> posts = new List<ImageData>();
@@ -48,7 +48,7 @@ namespace InstaBotPrototype.Services.Instagram
             {
                 posts.AddRange(GetRecentUserPosts(user.Id));
             }
-            return posts.OrderBy(x => x.CreatedTime).Select(x => x.Images.StandartResolution.Url).Take(postsAmount);
+            return posts.OrderBy(x => x.CreatedTime).Take(postsAmount);
         }
 
         public UsersInfo GetFollowers(string userId)

@@ -9,11 +9,11 @@ namespace DBMigrator.Migrations
             ApplyCommand.CommandText =
             @"CREATE TABLE dbo.InstagramIntegration 
 					(
-						UserId int, 
+						UserId int NOT NULL, 
 						InstagramId bigint NOT NULL,
                         Nickname nvarchar(50) NOT NULL,
                         AccessToken nvarchar(100) NOT NULL,
-						CONSTRAINT PK_InstagramIntegration PRIMARY KEY (ChatID), 
+						CONSTRAINT PK_InstagramIntegration PRIMARY KEY (InstagramId), 
 						CONSTRAINT FK_InstagramIntegration_Users FOREIGN KEY (UserId)     
 						REFERENCES dbo.Users (Id)     
 						ON DELETE CASCADE    

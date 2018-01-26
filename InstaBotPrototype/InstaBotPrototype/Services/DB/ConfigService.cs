@@ -4,12 +4,14 @@ using System.Configuration;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using InstaBotPrototype.Services.DB;
+using System.Data.Common;
 
 namespace InstaBotPrototype.Models
 {
     public class ConfigService : IConfigService
     {
         private string connectionString;
+        private DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
         private readonly char[] trimChar = { ' ', '\n', '\t' };
         private const int fieldLength = 128;
 
@@ -25,7 +27,7 @@ namespace InstaBotPrototype.Models
 
         #region IConfigService implementation
 
-        public ConfigurationModel GetDefaultConfig()
+        public ConfigurationModel GetConfig()
         {
             return new ConfigurationModel
             {
@@ -100,7 +102,7 @@ namespace InstaBotPrototype.Models
             return null;
         }
 
-        public void SaveConfig(ConfigurationModel config)
+        public void SaveConfig(ConfigurationModel config, String sessionId)
         {
             using (var connection =
                 new SqlConnection(connectionString))
@@ -112,7 +114,7 @@ namespace InstaBotPrototype.Models
 
                     if (config.ConfigId == null && isInstagramUsernameUnique)
                     {
-                        AddConfig(config, connection);
+                        AddConfig(config, sessionId ,connection);
                     }
                     else if (config.ConfigId != null && config.ConfigId > 0 && !isInstagramUsernameUnique)
                     {
@@ -131,23 +133,53 @@ namespace InstaBotPrototype.Models
             }
         }
 
+        public bool IsLoggedIn(String sessionID)
+        {
+            return GetUserIdBySession(sessionID).HasValue;   
+        }
+        public int? GetUserIdBySession(string sessionId) {
+            int? userId = null;
+            using (var dbConnection = factory.CreateConnection())
+            {
+                if (sessionId != null)
+                {
+                    dbConnection.ConnectionString = connectionString;
+                    var param = factory.CreateParameter();
+                    param.ParameterName = "@Id";
+                    param.Value = sessionId;
+                    var check = factory.CreateCommand();
+                    check.CommandText = "SELECT UserId FROM dbo.Sessions WHERE SessionId = @Id";
+                    check.Parameters.Add(param);
+                    check.Connection = dbConnection;
+                    dbConnection.Open();
+                    var reader = check.ExecuteReader();
+                    if (reader.HasRows) {
+                        reader.Read();
+                        userId = reader.GetInt32(0);
+                    }
+                    reader.Close();
+                }
+            }
+            return userId;
+        }
         #endregion
 
         #region Private helper methods
 
-        private void AddConfig(ConfigurationModel model, SqlConnection connection)
+        private void AddConfig(ConfigurationModel model,String sessionId, SqlConnection connection)
         {
             try
             {
                 string addConfigQuery =
-                    "INSERT INTO Configuration (InstaUsername, InstaPassword, TelegramUsername) " +
-                    "VALUES (@InstaUsername, @InstaPassword,  @TelegramUsername); " +
+                    "INSERT INTO Configuration (InstaUsername, InstaPassword, TelegramUsername,UserId) " +
+                    "VALUES (@InstaUsername, @InstaPassword,  @TelegramUsername,@UserId); " +
                     "SELECT @ConfigID = SCOPE_IDENTITY();";
 
                 SqlCommand addConfigCmd = new SqlCommand(addConfigQuery, connection);
                 addConfigCmd.Parameters.Add("@InstaUsername", SqlDbType.NVarChar, fieldLength).Value = model.InstaUsername;
                 addConfigCmd.Parameters.Add("@InstaPassword", SqlDbType.NVarChar, fieldLength).Value = model.InstaPassword;
                 addConfigCmd.Parameters.Add("@TelegramUsername", SqlDbType.NVarChar, fieldLength).Value = model.TelegramUsername;
+                addConfigCmd.Parameters.Add("@UserId", SqlDbType.Int).Value = GetUserIdBySession(sessionId);
                 SqlParameter configID = new SqlParameter()
                 {
                     ParameterName = "@ConfigID",
@@ -161,8 +193,9 @@ namespace InstaBotPrototype.Models
 
                 TrimTagsTopics(model);
 
-                AddTagsToConfigId(model.Tags, (int)model.ConfigId, connection);
                 AddTopicsToConfigId(model.Topics, (int)model.ConfigId, connection);
+                AddTagsToConfigId(model.Tags, (int)model.ConfigId, connection);
+                
 
             }
             catch (Exception ex)
