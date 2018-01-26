@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -13,9 +13,11 @@ namespace InstaBotPrototype.Services.AI
 
         static protected byte[] GetImageAsByteArray(string imageFilePath)
         {
-            var fileStream = new FileStream(imageFilePath, FileMode.Open, FileAccess.Read);
-            var binaryReader = new BinaryReader(fileStream);
-            return binaryReader.ReadBytes((int)fileStream.Length);
+            using (var fileStream = new FileStream(imageFilePath, FileMode.Open, FileAccess.Read))
+            using (var binaryReader = new BinaryReader(fileStream))
+            {
+                return binaryReader.ReadBytes((int)fileStream.Length);
+            }
         }
     }
 }
