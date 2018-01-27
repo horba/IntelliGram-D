@@ -35,7 +35,10 @@ namespace InstagramIntegration
                 selectTopics.Parameters.Add(parameter);
                 var topicsReader = selectTopics.ExecuteReader();
                 while (topicsReader.Read())
+                {
                     topics.Add(topicsReader.GetString(0));
+                }
+                    
                 topicsReader.Close();
             }
             return topics;
@@ -59,8 +62,10 @@ namespace InstagramIntegration
                 parameter.DbType = System.Data.DbType.Int32;
                 selectTags.Parameters.Add(parameter);
                 var tagsReader = selectTags.ExecuteReader();
-                while (tagsReader.Read())
+                while (tagsReader.Read()) 
+				{
                     tags.Add(tagsReader.GetString(0));
+                }
                 tagsReader.Close();
             }
             return tags;
@@ -80,7 +85,8 @@ namespace InstagramIntegration
                 parameter.Value = nickname;
                 selectId.Parameters.Add(parameter);
                 var idReader = selectId.ExecuteReader();
-                if (idReader.HasRows) {
+                if (idReader.HasRows) 
+				{
                     idReader.Read();
                     userId = idReader.GetInt32(0);
                 }
@@ -97,8 +103,10 @@ namespace InstagramIntegration
                 selectNicknames.CommandText = "SELECT Nickname FROM dbo.InstagramIntegration";
                 selectNicknames.Connection = DbConnection;
                 var nameReader = selectNicknames.ExecuteReader();
-                while (nameReader.Read()) 
+                while (nameReader.Read())
+                {
                     nicknames.Add(nameReader.GetString(0));
+                }
                 nameReader.Close();
             }
             return nicknames;
@@ -122,12 +130,15 @@ namespace InstagramIntegration
                         Console.WriteLine("Image # " + counter);
                         Console.WriteLine(String.Format("Url : {0}", post.Images.StandartResolution.Url));
                         Console.Write("Matching topics : ");
-                        foreach (var topic in matchingTopics)
-                            Console.Write(topic + " ");
+                        foreach (var topic in matchingTopics) {
+							Console.Write(topic + " ");
+						}
                         Console.WriteLine();
                         Console.Write("Matching tags : ");
                         foreach (var tag in matchingTags)
-                            Console.Write(tag + " ");
+						{
+							Console.Write(tag + " ");
+						}
                         Console.WriteLine();
                         ++counter;
                     }

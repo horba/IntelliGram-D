@@ -12,7 +12,7 @@ namespace DBMigrator.Migrations
 				     REFERENCES dbo.Users (Id)     
 				     ON DELETE CASCADE    
 				     ON UPDATE CASCADE";
-            ReverseCommand.CommandText = "drop table dbo.InstagramIntegration";
+            ReverseCommand.CommandText = "ALTER TABLE dbo.Configuration DROP COLUMN UserId";
         }
     }
     
