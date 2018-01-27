@@ -38,7 +38,6 @@ namespace InstagramIntegration
                 {
                     topics.Add(topicsReader.GetString(0));
                 }
-                    
                 topicsReader.Close();
             }
             return topics;
@@ -63,7 +62,7 @@ namespace InstagramIntegration
                 selectTags.Parameters.Add(parameter);
                 var tagsReader = selectTags.ExecuteReader();
                 while (tagsReader.Read()) 
-				{
+		{
                     tags.Add(tagsReader.GetString(0));
                 }
                 tagsReader.Close();
@@ -86,7 +85,7 @@ namespace InstagramIntegration
                 selectId.Parameters.Add(parameter);
                 var idReader = selectId.ExecuteReader();
                 if (idReader.HasRows) 
-				{
+		{
                     idReader.Read();
                     userId = idReader.GetInt32(0);
                 }
@@ -130,15 +129,16 @@ namespace InstagramIntegration
                         Console.WriteLine("Image # " + counter);
                         Console.WriteLine(String.Format("Url : {0}", post.Images.StandartResolution.Url));
                         Console.Write("Matching topics : ");
-                        foreach (var topic in matchingTopics) {
-							Console.Write(topic + " ");
-						}
+                        foreach (var topic in matchingTopics) 
+			{
+				Console.Write(topic + " ");
+			}
                         Console.WriteLine();
                         Console.Write("Matching tags : ");
                         foreach (var tag in matchingTags)
-						{
-							Console.Write(tag + " ");
-						}
+			{
+				Console.Write(tag + " ");
+			}
                         Console.WriteLine();
                         ++counter;
                     }
