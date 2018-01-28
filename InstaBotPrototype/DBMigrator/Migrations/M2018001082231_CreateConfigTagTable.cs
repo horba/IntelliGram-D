@@ -7,7 +7,7 @@ namespace DBMigrator.Migrations
     {
         public M2018001082231_CreateConfigTagTable(object factory, object connection) : base(factory as DbProviderFactory, connection as DbConnection)
         {
-            ApplyCommand.CommandText = "create table dbo.ConfigTag(ConfigID int not null, TagID int not null, primary key(ConfigID))";
+            ApplyCommand.CommandText = "create table dbo.ConfigTag(ConfigID int not null, TagID int not null)";
             ReverseCommand.CommandText = "drop table dbo.ConfigTag";
         }
     }
