@@ -39,7 +39,7 @@ namespace InstaBotPrototype.Controllers
             }
             else
             {
-                var result = new ObjectResult(new { errorMessage = "Something wrong has happened during registrartion" })
+                var result = new ObjectResult(new { errorMessage = "This user already exists" })
                 {
                     StatusCode = (int)HttpStatusCode.NotFound
                 };
