@@ -7,7 +7,7 @@ namespace DBMigrator.Migrations
     {
         public M2018001082226_CreateConfigTopicTable(object factory, object connection) : base(factory as DbProviderFactory, connection as DbConnection)
         {
-            ApplyCommand.CommandText = "create table dbo.ConfigTopic(ConfigID int not null, TopicID int not null)";
+            ApplyCommand.CommandText = "create table dbo.ConfigTopic(ConfigID int not null, TopicID int not null, primary key(ConfigID, TopicID))";
             ReverseCommand.CommandText = "drop table dbo.ConfigTopic";
         }
     }

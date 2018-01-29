@@ -84,7 +84,7 @@ namespace TelegramTestBot
 
         private static async void DialogStart(Message message)
         {
-            var isNewUser = await telegramDb.AddUser(message);
+            var isNewUser = await telegramDb.AddUserAsync(message);
 
             var answer = isNewUser
                 ? $"Hello, {message.Chat.FirstName}!"
@@ -115,7 +115,7 @@ namespace TelegramTestBot
 
         private static async void DeleteUser(Message message)
         {
-            var answer = await telegramDb.DeleteUser((int)message.Chat.Id)
+            var answer = await telegramDb.DeleteUserAsync((int)message.Chat.Id)
                 ? "Deleted "
                 : "You have been already deleted";
             await bot.SendTextMessageAsync(message.Chat.Id, answer);
@@ -135,7 +135,7 @@ namespace TelegramTestBot
         {
             if (long.TryParse(telegramText, out var telegramVerificationKey))
             {
-                if (await telegramDb.Verify(telegramVerificationKey, chatId))
+                if (await telegramDb.VerifyAsync(telegramVerificationKey, chatId))
                 {
                     SendMessage(chatId, "Congratulations! You have been successfully verified");
                 }
@@ -165,7 +165,7 @@ namespace TelegramTestBot
                     return;
                 }
 
-                var isVerified = await telegramDb.CheckVerification(message.Chat.Id);
+                var isVerified = await telegramDb.CheckVerificationAsync(message.Chat.Id);
 
                 var command = new BotCommand() { Command = message.Text };
 

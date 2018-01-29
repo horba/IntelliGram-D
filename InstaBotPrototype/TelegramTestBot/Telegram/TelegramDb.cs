@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Data.SqlClient;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 
@@ -19,7 +16,7 @@ namespace TelegramTestBot
 
         #region DB methods
 
-        public async Task<string> GetUsers()
+        public async Task<string> GetUsersAsync()
         {
             try
             {
@@ -52,7 +49,7 @@ namespace TelegramTestBot
 
         }
 
-        public async Task<bool> UserExists(int chatId, SqlConnection connection)
+        public async Task<bool> UserExistsAsync(int chatId, SqlConnection connection)
         {
             var checkExistsQuery = "SELECT COUNT(ChatId) FROM TelegramIntegration WHERE ChatId = @ChatId";
             using (var checkExistsCmd = new SqlCommand(checkExistsQuery, connection))
@@ -62,12 +59,12 @@ namespace TelegramTestBot
             }
         }
 
-        public async Task<bool> AddUser(Message message)
+        public async Task<bool> AddUserAsync(Message message)
         {
             using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
-                if (!await UserExists((int)message.Chat.Id, connection))
+                if (!await UserExistsAsync((int)message.Chat.Id, connection))
                 {
                     var addQuery =
                         "INSERT INTO TelegramIntegration " +
@@ -90,12 +87,12 @@ namespace TelegramTestBot
             }
         }
 
-        public async Task<bool> DeleteUser(int chatId)
+        public async Task<bool> DeleteUserAsync(int chatId)
         {
             using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
-                if (await UserExists(chatId, connection))
+                if (await UserExistsAsync(chatId, connection))
                 {
                     var deleteQuery = "DELETE FROM TelegramIntegration WHERE ChatId = @ChatId";
                     using (var deleteCmd = new SqlCommand(deleteQuery, connection))
@@ -109,7 +106,7 @@ namespace TelegramTestBot
             return false;
         }
 
-        public async Task<bool> CheckVerification(long chatId)
+        public async Task<bool> CheckVerificationAsync(long chatId)
         {
             using (var connection = new SqlConnection(connectionString))
             {
@@ -123,7 +120,7 @@ namespace TelegramTestBot
             }
         }
 
-        public async Task<bool> Verify(long telegramVerificationKey, long chatId)
+        public async Task<bool> VerifyAsync(long telegramVerificationKey, long chatId)
         {
             using (var connection = new SqlConnection(connectionString))
             {
@@ -140,8 +137,8 @@ namespace TelegramTestBot
 
                     if (userId != null)
                     {
-                        await UpdateUserId((int)userId);
-                        await DeleteVerificationRecord();
+                        await UpdateUserIdAsync((int)userId);
+                        await DeleteVerificationRecordAsync();
                         return true;
                     }
                     else
@@ -152,7 +149,7 @@ namespace TelegramTestBot
 
                 #region Helper db methods
 
-                async Task UpdateUserId(int userId)
+                async Task UpdateUserIdAsync(int userId)
                 {
                     var insertUserIdQuery = "UPDATE TelegramIntegration SET UserId = @UserId WHERE ChatId = @ChatId";
 
@@ -164,7 +161,7 @@ namespace TelegramTestBot
                     }
                 }
 
-                async Task DeleteVerificationRecord()
+                async Task DeleteVerificationRecordAsync()
                 {
                     var deleteVerificationQuery = "DELETE FROM TelegramVerification WHERE TelegramVerificationKey = @TelegramVerificationKey";
 
