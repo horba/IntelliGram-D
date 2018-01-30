@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Telegram.Bot.Example
+namespace TelegramTestBot
 {
     class BotCommand
     {
@@ -11,7 +11,6 @@ namespace Telegram.Bot.Example
     class BotCommandEqualityComparer : IEqualityComparer<BotCommand>
     {
         public bool Equals(BotCommand x, BotCommand y) => x.Command == y.Command && x.Access == y.Access;
-
         public int GetHashCode(BotCommand obj) => obj.Command.GetHashCode();
     }
 }
