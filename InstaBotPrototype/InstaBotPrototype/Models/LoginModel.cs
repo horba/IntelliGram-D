@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace InstaBotPrototype.Models
+﻿namespace InstaBotPrototype.Models
 {
     public class LoginModel
     {
