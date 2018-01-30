@@ -21,11 +21,10 @@ namespace InstaBotPrototype.Controllers
             }
             else
             {
-                var result = new ObjectResult(new { errorMessage = "Wrong login or password" })
+                return new ObjectResult(new { errorMessage = "Wrong login or password" })
                 {
                     StatusCode = (int)HttpStatusCode.NotFound
                 };
-                return result;
             }
         }
 
@@ -39,11 +38,10 @@ namespace InstaBotPrototype.Controllers
             }
             else
             {
-                var result = new ObjectResult(new { errorMessage = "Something wrong has happened during registrartion" })
+                return new ObjectResult(new { errorMessage = "Something wrong has happened during registrartion" })
                 {
-                    StatusCode = (int)HttpStatusCode.NotFound
+                    StatusCode = (int)HttpStatusCode.Unauthorized
                 };
-                return result;
             }
         }
     }
