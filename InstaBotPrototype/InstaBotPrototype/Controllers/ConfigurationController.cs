@@ -1,10 +1,9 @@
-﻿using System;
+﻿using InstaBotPrototype.Models;
+using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Configuration;
 using System.Data.Common;
-using InstaBotPrototype.Models;
 using InstaBotPrototype.Services.DB;
-using Microsoft.AspNetCore.Mvc;
-
 namespace InstaBotPrototype.Controllers
 {
     [Route("api/[controller]")]

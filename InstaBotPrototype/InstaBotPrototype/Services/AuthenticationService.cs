@@ -1,5 +1,5 @@
-using System;
 using InstaBotPrototype.Models;
+using System;
 using System.Configuration;
 using System.Data.Common;
 
@@ -26,14 +26,15 @@ namespace InstaBotPrototype.Services
                 if (readerID.HasRows)
                 {
                     readerID.Read();
-                    int id = readerID.GetInt32(0);
+                    var id = readerID.GetInt32(0);
                     readerID.Close();
                     var selectTelegram = factory.CreateCommand();
                     selectTelegram.Connection = dbConnection;
                     selectTelegram.CommandText = $"SELECT TelegramVerificationKey FROM dbo.TelegramVerification WHERE UserId = @id";
                     selectTelegram.Parameters.Add(CreateParameter("@id", id));
                     var readerKey = selectTelegram.ExecuteReader();
-                    if (readerKey.HasRows) {
+                    if (readerKey.HasRows)
+                    {
                         readerKey.Read();
                         verifyKey = readerKey.GetInt32(0);
                     }
@@ -43,7 +44,7 @@ namespace InstaBotPrototype.Services
             return verifyKey;
         }
 
-        public String Login(LoginModel model)
+        public string Login(LoginModel model)
         {
             Guid? sessionID = null;
             using (var dbConnection = factory.CreateConnection())
@@ -60,12 +61,12 @@ namespace InstaBotPrototype.Services
                 if (reader.HasRows)
                 {
                     reader.Read();
-                    int id = reader.GetInt32(0);
+                    var id = reader.GetInt32(0);
                     reader.Close();
                     sessionID = Guid.NewGuid();
                     var insertSession = factory.CreateCommand();
                     insertSession.Connection = dbConnection;
-                    insertSession.CommandText = $"INSERT INTO dbo.Sessions (UserId,SessionId) VALUES (@id,@sessionID)";;
+                    insertSession.CommandText = $"INSERT INTO dbo.Sessions (UserId,SessionId) VALUES (@id,@sessionID)";
                     insertSession.Parameters.Add(CreateParameter("@id", id));
                     insertSession.Parameters.Add(CreateParameter("@sessionID", sessionID));
                     insertSession.ExecuteNonQuery();
@@ -74,7 +75,7 @@ namespace InstaBotPrototype.Services
             return sessionID?.ToString();
         }
 
-        public String Register(LoginModel model)
+        public string Register(LoginModel model)
         {
             var dbConnection = factory.CreateConnection();
             dbConnection.ConnectionString = connectionString;
@@ -95,6 +96,7 @@ namespace InstaBotPrototype.Services
 
             return Login(model);
         }
+
         private DbParameter CreateParameter(string name, object value)
         {
             var parameter = factory.CreateParameter();
