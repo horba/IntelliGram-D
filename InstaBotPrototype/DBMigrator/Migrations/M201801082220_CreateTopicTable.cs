@@ -3,9 +3,9 @@
 namespace DBMigrator.Migrations
 {
     [Indexer(201801082220)]
-    class M2018001082220_CreateTopicTable : DBMigration
+    class M201801082220_CreateTopicTable : DBMigration
     {
-        public M2018001082220_CreateTopicTable(object factory, object connection) : base(factory as DbProviderFactory, connection as DbConnection)
+        public M201801082220_CreateTopicTable(object factory, object connection) : base(factory as DbProviderFactory, connection as DbConnection)
         {
             ApplyCommand.CommandText = @"CREATE TABLE dbo.Topic
             (
