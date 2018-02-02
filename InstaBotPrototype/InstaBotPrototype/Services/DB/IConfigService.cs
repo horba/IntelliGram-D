@@ -2,9 +2,13 @@
 
 namespace InstaBotPrototype.Services.DB
 {
-    interface IConfigService
+    public interface IConfigService
     {
-        void SaveConfig(ConfigurationModel config);
+        void SaveConfig(ConfigurationModel config, string sessionId);
+        ConfigurationModel GetConfig();
         ConfigurationModel GetConfig(int? id);
+        bool IsLoggedIn(string sessionID);
+        int? GetUserIdBySession(string sessionId);
+
     }
 }

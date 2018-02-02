@@ -2,13 +2,18 @@
 
 namespace DBMigrator.Migrations
 {
-    [Indexer(2018001082224)]
+    [Indexer(201801082224)]
     class M2018001082224_CreateTagTable : DBMigration
     {
         public M2018001082224_CreateTagTable(object factory, object connection) : base(factory as DbProviderFactory, connection as DbConnection)
         {
-            ApplyCommand.CommandText = "create table dbo.Tag(TagID int identity(1,1), Tag nvarchar(128) not null, primary key(TagID))";
-            ReverseCommand.CommandText = "drop table dbo.Tag";
+            ApplyCommand.CommandText = @"CREATE TABLE dbo.Tag
+            (
+            	TagID int IDENTITY(1,1),
+            	Tag nvarchar(128) NOT NULL,
+            	PRIMARY KEY(TagID)
+            )";
+            ReverseCommand.CommandText = "DROP TABLE dbo.Tag";
         }
     }
 }
