@@ -7,8 +7,11 @@ namespace DBMigrator.Migrations
     {
         public M201711290739_CreateMigrationsTable(object factory, object connection) : base(factory as DbProviderFactory, connection as DbConnection) // Call base constructor
         {
-            ApplyCommand.CommandText = "create table dbo.Migrations (Name nvarchar(100), ApplyTime DateTime)"; // Hardcode database apply ...
-            ReverseCommand.CommandText = "drop table dbo.Migrations"; // ... and reverse commands
+            ApplyCommand.CommandText = @"CREATE TABLE dbo.Migrations (
+                                        Name nvarchar(100), 
+                                        ApplyTime DateTime
+                                        )"; // Hardcode database apply ...
+            ReverseCommand.CommandText = "DROP TABLE dbo.Migrations"; // ... and reverse commands
         }
     } // Well done!
 }
