@@ -76,26 +76,39 @@ namespace InstaBotPrototype.Services
             return sessionID?.ToString();
         }
 
-        public string Register(LoginModel model)
+        public String Register(LoginModel model)
         {
             var dbConnection = factory.CreateConnection();
             dbConnection.ConnectionString = connectionString;
 
             dbConnection.Open();
 
-            var insert = factory.CreateCommand();
-            insert.Connection = dbConnection;
-            insert.CommandText = $"INSERT INTO dbo.Users (Login, Email, Password, RegisterDate) VALUES (@login, @email, @password, SYSDATETIME())";
-
+            var checkUserExists = factory.CreateCommand();
+            checkUserExists.Connection = dbConnection;
+            checkUserExists.CommandText = $"SELECT COUNT(Login) FROM dbo.Users WHERE Login = @login";
             var login = CreateParameter("@login", model.Login);
-            var email = CreateParameter("@email", model.Email);
-            var password = CreateParameter("@password", model.Password);
+            checkUserExists.Parameters.Add(login);
+            int usersCount = Convert.ToInt32(checkUserExists.ExecuteScalar());
+            if (usersCount == 0)
+            {
+                var insert = factory.CreateCommand();
+                insert.Connection = dbConnection;
+                insert.CommandText = $"INSERT INTO dbo.Users (Login, Email, Password, RegisterDate) VALUES (@login, @email, @password, SYSDATETIME())";
 
-            insert.Parameters.AddRange(new[] { login, email, password });
-            insert.ExecuteNonQuery();
-            dbConnection.Close();
+                login = CreateParameter("@login", model.Login);
+                var email = CreateParameter("@email", model.Email);
+                var password = CreateParameter("@password", model.Password);
 
-            return Login(model);
+                insert.Parameters.AddRange(new[] { login, email, password });
+                insert.ExecuteNonQuery();
+                dbConnection.Close();
+
+                return Login(model);
+            }
+            else
+            {
+                return null;
+            }
         }
 
         private DbParameter CreateParameter(string name, object value)
