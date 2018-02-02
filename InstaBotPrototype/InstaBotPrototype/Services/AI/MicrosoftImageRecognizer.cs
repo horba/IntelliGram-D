@@ -3,17 +3,19 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using System.Web.Configuration;
+using System.Configuration;
 
 namespace InstaBotPrototype.Services.AI
 {
     public class MicrosoftImageRecognizer : ImageRecognizer
     {
-        string subscriptionKey = WebConfigurationManager.OpenWebConfiguration(null).AppSettings.Settings["MicrosoftSubscriptionKey"].Value;
-        string uriBase = WebConfigurationManager.OpenWebConfiguration(null).AppSettings.Settings["MicrosoftUriBase"].Value;
+       
+        string subscriptionKey = "9130b53bc6c846979760aed320a58e6b";
+        string uriBase = "https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/analyze";
 
         public override async Task<IEnumerable<string>> RecognizeTopicAsync(byte[] imageBytes)
         {
+            
             var client = new HttpClient();
 
             client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", subscriptionKey);
