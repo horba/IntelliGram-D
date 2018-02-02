@@ -1,4 +1,4 @@
-﻿namespace Telegram.Bot.Example
+﻿namespace TelegramTestBot
 {
     enum AccessModifier
     {

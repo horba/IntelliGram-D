@@ -15,36 +15,24 @@ namespace InstaBotPrototype.Controllers
         public IActionResult Login(LoginModel loginModel)
         {
             var loginResult = _authenticationService.Login(loginModel);
-            if (loginResult != null)
-            {
-                return new ObjectResult(new { sessionID = loginResult, verifyKey = _authenticationService.GetVerifyKey(loginModel) });
-            }
-            else
-            {
-                var result = new ObjectResult(new { errorMessage = "Wrong login or password" })
+            return loginResult != null
+                ? new ObjectResult(new { sessionID = loginResult, verifyKey = _authenticationService.GetVerifyKey(loginModel) })
+                : new ObjectResult(new { errorMessage = "Wrong login or password" })
                 {
                     StatusCode = (int)HttpStatusCode.NotFound
                 };
-                return result;
-            }
         }
 
         [HttpPost]
         public IActionResult Register(LoginModel loginModel)
         {
             var registerResult = _authenticationService.Register(loginModel);
-            if (registerResult != null)
-            {
-                return new ObjectResult(new { sessionID = registerResult, verifyKey = _authenticationService.GetVerifyKey(loginModel) });
-            }
-            else
-            {
-                var result = new ObjectResult(new { errorMessage = "This user already exists" })
+            return registerResult != null
+                ? new ObjectResult(new { sessionID = registerResult, verifyKey = _authenticationService.GetVerifyKey(loginModel) })
+                : new ObjectResult(new { errorMessage = "Something wrong has happened during registrartion" })
                 {
-                    StatusCode = (int)HttpStatusCode.NotFound
+                    StatusCode = (int)HttpStatusCode.Unauthorized
                 };
-                return result;
-            }
         }
     }
 }
