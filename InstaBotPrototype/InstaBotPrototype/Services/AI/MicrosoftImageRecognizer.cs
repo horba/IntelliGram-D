@@ -9,8 +9,8 @@ namespace InstaBotPrototype.Services.AI
 {
     public class MicrosoftImageRecognizer : ImageRecognizer
     {
-        string subscriptionKey = WebConfigurationManager.OpenWebConfiguration(null).AppSettings.Settings["MicrosoftSubscriptionKey"].Value;
-        string uriBase = WebConfigurationManager.OpenWebConfiguration(null).AppSettings.Settings["MicrosoftUriBase"].Value;
+        string subscriptionKey = "9130b53bc6c846979760aed320a58e6b";
+        string uriBase = @"https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/analyze";
 
         public override async Task<IEnumerable<string>> RecognizeTopicAsync(byte[] imageBytes)
         {

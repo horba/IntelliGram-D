@@ -2,13 +2,22 @@
 
 namespace DBMigrator.Migrations
 {
-    [Indexer(2018001082231)]
+    [Indexer(201801082231)]
     class M2018001082231_CreateConfigTagTable : DBMigration
     {
         public M2018001082231_CreateConfigTagTable(object factory, object connection) : base(factory as DbProviderFactory, connection as DbConnection)
         {
-            ApplyCommand.CommandText = "create table dbo.ConfigTag(ConfigID int not null, TagID int not null, primary key(ConfigID, TagID))";
-            ReverseCommand.CommandText = "drop table dbo.ConfigTag";
+            ApplyCommand.CommandText = @"create table dbo.ConfigTag
+            (
+            ConfigID int NOT NULL,
+            TagID int NOT NULL,
+            PRIMARY KEY(ConfigID,TagID),
+            CONSTRAINT FK_ConfigTagId
+			FOREIGN KEY(ConfigID) REFERENCES Configuration(ConfigID),
+			CONSTRAINT FK_TagId
+			FOREIGN KEY(TagID) REFERENCES Tag(TagID)
+            )";
+            ReverseCommand.CommandText = "DROP TAB dbo.ConfigTag";
         }
     }
 }

@@ -76,7 +76,7 @@ namespace InstaBotPrototype.Services
             return sessionID?.ToString();
         }
 
-        public String Register(LoginModel model)
+        public string Register(LoginModel model)
         {
             var dbConnection = factory.CreateConnection();
             dbConnection.ConnectionString = connectionString;

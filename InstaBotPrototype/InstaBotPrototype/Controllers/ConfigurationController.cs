@@ -1,8 +1,9 @@
-﻿using InstaBotPrototype.Models;
-using Microsoft.AspNetCore.Mvc;
-using System;
+﻿using System;
 using System.Configuration;
 using System.Data.Common;
+using InstaBotPrototype.Models;
+using InstaBotPrototype.Services.DB;
+using Microsoft.AspNetCore.Mvc;
 
 namespace InstaBotPrototype.Controllers
 {
@@ -11,7 +12,7 @@ namespace InstaBotPrototype.Controllers
     {
 
         static string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
-        ConfigService config = new ConfigService(connectionString);
+        IConfigService configService = new ConfigService(connectionString);
         DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
 
         // GET api/configuration
@@ -20,7 +21,7 @@ namespace InstaBotPrototype.Controllers
         {
             if (IsLoggedIn())
             {
-                return config.GetDefaultConfig();
+                return configService.GetConfig();
             }
             return null;
         }
@@ -31,7 +32,7 @@ namespace InstaBotPrototype.Controllers
         {
             if (IsLoggedIn())
             {
-                return config.GetConfig(id);
+                return configService.GetConfig(id);
             }
             return null;
         }
@@ -42,7 +43,7 @@ namespace InstaBotPrototype.Controllers
         {
             if (IsLoggedIn())
             {
-                config.SaveConfig(model);
+                configService.SaveConfig(model, Request.Cookies["sessionID"]);
             }
             return Ok(model);
         }
@@ -66,43 +67,10 @@ namespace InstaBotPrototype.Controllers
                 // code here
             }
         }
-
-        bool IsLoggedIn()
+        private bool IsLoggedIn()
         {
-            DbConnection conn = null;
-            try
-            {
-                var id = Request.Cookies["sessionID"];
-                if (id != null)
-                {
-                    conn = factory.CreateConnection();
-                    conn.ConnectionString = connectionString;
-
-                    var param = factory.CreateParameter();
-                    param.ParameterName = "@Id";
-                    param.Value = id;
-
-                    var check = factory.CreateCommand();
-                    check.CommandText = "select count(SessionId) from dbo.Sessions where SessionId = @Id";
-                    check.Parameters.Add(param);
-                    check.Connection = conn;
-
-                    conn.Open();
-
-                    if (Convert.ToInt32(check.ExecuteScalar()) == 1)
-                    {
-                        return true;
-                    }
-                }
-            }
-            catch
-            {
-            }
-            finally
-            {
-                conn?.Close();
-            }
-            return false;
+            return configService.IsLoggedIn(Request.Cookies["sessionID"]);
         }
+
     }
 }

@@ -1,11 +1,10 @@
-﻿using InstaBotPrototype.Services.Instagram;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
-
-namespace InstaBotPrototype
+namespace InstaBotPrototype.Services.Instagram
 {
     public class InstagramService : IInstagramService
     {
@@ -27,66 +26,73 @@ namespace InstaBotPrototype
 
         public string GetUserId(string username)
         {
-            var getUserInfo = "https://api.instagram.com/v1/users/search?q=" + username + "&access_token=" + standartToken;
-            var response = GetResponse(getUserInfo);
-            var user = JsonConvert.DeserializeObject<UsersInfo>(response);
-            return user.Data[0].Id;
+            string getUserInfo = "https://api.instagram.com/v1/users/search?q=" + username + "&access_token=" + standartToken;
+            string response = GetResponse(getUserInfo);
+            UsersInfo info = JsonConvert.DeserializeObject<UsersInfo>(response);
+            return info.Users[0].Id;
+        }
+        public string GetUsername(string token)
+        {
+            string getUserInfo = "https://api.instagram.com/v1/users/self/?&access_token=" + token;
+            string response = GetResponse(getUserInfo);
+            UserInfo info = JsonConvert.DeserializeObject<UserInfo>(response);
+            return info.User.Username;
         }
 
         public IEnumerable<ImageData> GetRecentUserPosts(string userId)
         {
-            var getRecentMedia = "https://api.instagram.com/v1/users/" + userId + "/media/recent?access_token=" + accessTokens[userId];
-            var response = GetResponse(getRecentMedia);
-            var posts = JsonConvert.DeserializeObject<Post>(response);
-            return posts.Data;
-
+            string getRecentMedia = "https://api.instagram.com/v1/users/" + userId + "/media/recent?access_token=" + accessTokens[userId];
+            string response = GetResponse(getRecentMedia);
+            Post posts = JsonConvert.DeserializeObject<Post>(response);
+            return posts.Images;
         }
 
-        public IEnumerable<string> GetLatestPosts(string username)
+        public IEnumerable<ImageData> GetLatestPosts(string username)
         {
-            var userId = GetUserId(username);
-            var posts = new List<ImageData>();
-            var followers = GetFollowers(userId);
-            foreach (var user in followers.Data)
+            string userId = GetUserId(username);
+            List<ImageData> posts = new List<ImageData>();
+            foreach (var user in GetFollowers(userId).Users)
             {
                 posts.AddRange(GetRecentUserPosts(user.Id));
             }
-            posts.Sort(new ImageComparer());
-            var latestPosts = new List<string>();
-            for (var i = 0; i < posts.Count && i < postsAmount; i++)
-            {
-                latestPosts.Add(posts[i].Images.Standard_resolution.Url);
-            }
-            return latestPosts;
+            return posts.OrderBy(x => x.CreatedTime).Take(postsAmount);
         }
 
         public UsersInfo GetFollowers(string userId)
         {
-            var getFollowers = "https://api.instagram.com/v1/users/" + userId + "/follows?access_token=" + accessTokens[userId];
-            var response = GetResponse(getFollowers);
-            var followers = JsonConvert.DeserializeObject<UsersInfo>(response);
+            string getFollowers = "https://api.instagram.com/v1/users/" + userId + "/follows?access_token=" + accessTokens[userId];
+            string response = GetResponse(getFollowers);
+            UsersInfo followers = JsonConvert.DeserializeObject<UsersInfo>(response);
             return followers;
         }
-
-        public void GetAllPermissions()
+        public WebResponse GetAllPermissions()
         {
-            var authorization = "https://api.instagram.com/oauth/authorize?client_id=" + clientId + "&redirect_uri=" + redirectUri + "&scope=basic+public_content+comments+follower_list&response_type=token";
+            string authorization = "https://api.instagram.com/oauth/authorize?client_id=" + clientId + "&redirect_uri=" + redirectUri + "&scope=basic+public_content+comments+follower_list&response_type=token";
             var webRequest = WebRequest.Create(authorization);
-            var webResponse = webRequest.GetResponse();
+            //var webResponse = webRequest.GetResponse();
+            return webRequest.GetResponse();
         }
 
         private string GetResponse(string request)
         {
             var webRequest = WebRequest.Create(request);
             var webResponse = webRequest.GetResponse();
-
             using (var reader = new StreamReader(webResponse.GetResponseStream()))
             {
                 return reader.ReadToEnd();
             }
         }
 
-        public int Login(string username, string password) => throw new NotImplementedException();
+        public int Login(string username, string password)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void GetUsersToken()
+        {
+            var resp = GetAllPermissions();
+
+        }
 
         #region ClassesForDeserialization
         public class User
@@ -94,9 +100,9 @@ namespace InstaBotPrototype
             [JsonProperty("id")]
             public string Id { get; set; }
             [JsonProperty("full_name")]
-            public string Full_name { get; set; }
+            public string Fullname { get; set; }
             [JsonProperty("profile_picture")]
-            public string Profile_picture { get; set; }
+            public string ProfilePicture { get; set; }
             [JsonProperty("username")]
             public string Username { get; set; }
         }
@@ -110,22 +116,15 @@ namespace InstaBotPrototype
             [JsonProperty("images")]
             public Images Images { get; set; }
             [JsonProperty("created_time")]
-            public string Created_time { get; set; }
-
+            public string CreatedTime { get; set; }
+            [JsonProperty("tags")]
+            public List<String> Tags { get; set; }
         }
-
-        public class ImageComparer : IComparer<ImageData>
-        {
-            //Descending sorting
-            public int Compare(ImageData x, ImageData y) => y.Created_time.CompareTo(x.Created_time);
-        }
-
         public class Images
         {
             [JsonProperty("standard_resolution")]
-            public StandartResolution Standard_resolution { get; set; }
+            public StandartResolution StandartResolution { get; set; }
         }
-
         public class StandartResolution
         {
             [JsonProperty("width")]
@@ -135,18 +134,23 @@ namespace InstaBotPrototype
             [JsonProperty("url")]
             public string Url { get; set; }
         }
-
         public class Post
         {
             [JsonProperty("data")]
-            public List<ImageData> Data { get; set; }
+            public List<ImageData> Images { get; set; }
         }
 
         public class UsersInfo
         {
             [JsonProperty("data")]
-            public List<User> Data { get; set; }
+            public List<User> Users { get; set; }
+        }
+        public class UserInfo
+        {
+            [JsonProperty("data")]
+            public User User { get; set; }
         }
         #endregion
     }
 }
+
