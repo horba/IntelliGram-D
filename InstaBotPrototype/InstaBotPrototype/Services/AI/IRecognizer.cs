@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace InstaBotPrototype.Services.AI
 {
-    interface IRecognizer
+    public interface IRecognizer
     {
         IEnumerable<string> RecognizeTopic(byte[] imageBytes);
         IEnumerable<string> RecognizeTopic(string imageFilePath);
