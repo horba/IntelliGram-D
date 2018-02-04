@@ -12,6 +12,7 @@ $("#closeSignUp").click(function () {
     $("#signupPopup").css("display", "none");
     $("#signupError").text("");
 });
+
 var $loginForm = $("#modalLogin");
 $loginForm.submit(function (event) {
     clickHandler(event, "#loginError", $loginForm);
@@ -19,6 +20,14 @@ $loginForm.submit(function (event) {
 var $signUpForm = $("#modalSignup");
 $signUpForm.submit(function (event) {
     clickHandler(event, "#signUpError", $signUpForm);
+});
+$("#logOut").click(function () {
+    console.log("dfhdfhdfhdfdfjdjdfjdj");
+    document.cookie = "sessionID" + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    $("#loginPopup").css("display", "none");
+    $("#signupPopup").css("display", "none");
+    $("#configPage").css("display", "none");
+    $("#authPage").css("display", "block");
 });
 function clickHandler(event,errorDiv,$form) {
     event.preventDefault();

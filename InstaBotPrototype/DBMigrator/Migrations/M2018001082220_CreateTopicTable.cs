@@ -2,7 +2,7 @@
 
 namespace DBMigrator.Migrations
 {
-    [Indexer(2018001082220)]
+    [Indexer(201801082220)]
     class M2018001082220_CreateTopicTable : DBMigration
     {
         public M2018001082220_CreateTopicTable(object factory, object connection) : base(factory as DbProviderFactory, connection as DbConnection)

@@ -14,6 +14,7 @@ namespace TelegramTestBot
             var telegramThread = new Thread(new ThreadStart(telegram.Run));
             telegramThread.Start();
 
+            //дёрнуть бота
             Console.ReadLine();
         }
     }

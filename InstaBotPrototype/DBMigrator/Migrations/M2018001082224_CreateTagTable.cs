@@ -2,7 +2,7 @@
 
 namespace DBMigrator.Migrations
 {
-    [Indexer(2018001082224)]
+    [Indexer(201801082224)]
     class M2018001082224_CreateTagTable : DBMigration
     {
         public M2018001082224_CreateTagTable(object factory, object connection) : base(factory as DbProviderFactory, connection as DbConnection)
