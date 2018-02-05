@@ -3,9 +3,9 @@
 namespace DBMigrator.Migrations
 {
     [Indexer(201801082224)]
-    class M2018001082224_CreateTagTable : DBMigration
+    class M201801082224_CreateTagTable : DBMigration
     {
-        public M2018001082224_CreateTagTable(object factory, object connection) : base(factory as DbProviderFactory, connection as DbConnection)
+        public M201801082224_CreateTagTable(object factory, object connection) : base(factory as DbProviderFactory, connection as DbConnection)
         {
             ApplyCommand.CommandText = @"CREATE TABLE dbo.Tag
             (

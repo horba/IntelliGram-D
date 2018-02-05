@@ -48,11 +48,11 @@
     <Compile Include="Migrations\M201711290739_CreateMigrationsTable.cs" />
     <Compile Include="Migrations\M201711290745_CreateUsersTable.cs" />
     <Compile Include="Migrations\M201712310814_CreateSessionsTable.cs" />
-    <Compile Include="Migrations\M2018001082211_CreateConfigurationTable.cs" />
-    <Compile Include="Migrations\M2018001082220_CreateTopicTable.cs" />
-    <Compile Include="Migrations\M2018001082224_CreateTagTable.cs" />
-    <Compile Include="Migrations\M2018001082226_CreateConfigTopicTable.cs" />
-    <Compile Include="Migrations\M2018001082231_CreateConfigTagTable.cs" />
+    <Compile Include="Migrations\M201801082211_CreateConfigurationTable.cs" />
+    <Compile Include="Migrations\M201801082220_CreateTopicTable.cs" />
+    <Compile Include="Migrations\M201801082224_CreateTagTable.cs" />
+    <Compile Include="Migrations\M201801082226_CreateConfigTopicTable.cs" />
+    <Compile Include="Migrations\M201801082231_CreateConfigTagTable.cs" />
     <Compile Include="Migrations\M201801100151_CreateTelegramIntegrationTable.cs" />
     <Compile Include="Migrations\M201801102326_CreateTelegramVerificationTable.cs" />
     <Compile Include="Migrations\M201801102327_CreateUserInsertTrigger.cs" />
