@@ -1,60 +1,39 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Configuration;
-using System.Data.Common;
-using System.Net;
-using System.Net.Http;
 using InstaBotPrototype.Services.Instagram;
 using InstaBotPrototype.Services.DB;
-using InstaBotPrototype.Models;
-
 namespace InstaBotPrototype.Controllers
 {
-    [Route("api/Instagram")]
-    public class InstagramController: Controller
+    public class InstagramController : Controller
     {
-        string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
-        DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
-        public ViewResult Index() {
-            return View();
+        private readonly IInstagramService _instagramService;
+        private readonly IConfigService _configService;
+        public InstagramController(IInstagramService instagramService, IConfigService configService)
+        {
+            _instagramService = instagramService;
+            _configService = configService;
         }
+        [Route("api/Instagram")]
+        public ActionResult Index()
+        {
+            if (!_configService.IsUserVerifiedInInstagram(Request.Cookies["sessionID"]))
+                return View("Verify");
+            else
+                return View("Redirect");
+        }
+        [Route("api/Instagram/Verify")]
+        public ActionResult Verify()
+        {
+            return Redirect("https://api.instagram.com/oauth/authorize?client_id=937fa7572cb244e9885382f8cedba3c8&redirect_uri=http://localhost:58687/api/Instagram&scope=basic+public_content+comments+follower_list&response_type=token");
+        }
+        [Route("api/Instagram")]
         [HttpPost]
-        public void Post(string token) {
-            
-            using (var dbConnection = factory.CreateConnection())
-            {
-                dbConnection.ConnectionString = connectionString;
-                dbConnection.Open();
-
-                var insertCmd = factory.CreateCommand();
-                insertCmd.Connection = dbConnection;
-
-                string tokenStr = token.Substring(token.IndexOf("#access_token") + 14);
-                var id = long.Parse(tokenStr.Split('.')[0]);
-                InstagramService insta = new InstagramService();
-                string nickname = insta.GetUsername(tokenStr);
-
-                insertCmd.CommandText = "INSERT INTO InstagramIntegration VALUES (@UserId,@InstaId,@Nick,@Token)";
-                var userIdParam = factory.CreateParameter();
-                userIdParam.ParameterName = "@InstaId";
-                userIdParam.Value = id;
-
-                var nickParam = factory.CreateParameter();
-                nickParam.ParameterName = "@Nick";
-                nickParam.Value = nickname;
-
-                var tokenParam = factory.CreateParameter();
-                tokenParam.ParameterName = "@Token";
-                tokenParam.Value = tokenStr;
-                IConfigService service = new ConfigService();
-                var userid = service.GetUserIdBySession(Request.Cookies["sessionID"]);
-
-                var idParam = factory.CreateParameter();
-                idParam.ParameterName = "@UserId";
-                idParam.Value = userid.Value;
-
-                insertCmd.Parameters.AddRange(new[] { idParam, userIdParam, nickParam, tokenParam });
-                insertCmd.ExecuteNonQuery();
-            }
+        public void Post(string token)
+        {
+            string pattern = "#access_token=";
+            string tokenStr = token.Substring(token.IndexOf(pattern) + pattern.Length);
+            var id = long.Parse(tokenStr.Split('.')[0]);
+            string nickname = _instagramService.GetUsername(tokenStr);
+            _configService.SaveInstagramToken(id, nickname, tokenStr, Request.Cookies["sessionID"]);
 
         }
     }

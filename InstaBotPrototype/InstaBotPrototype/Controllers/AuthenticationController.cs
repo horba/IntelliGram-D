@@ -9,15 +9,17 @@ namespace InstaBotPrototype.Controllers
     public class AuthenticationController : Controller
     {
         private readonly IAuthenticationService _authenticationService;
-        public AuthenticationController(IAuthenticationService service) => _authenticationService = service;
-
+        public AuthenticationController(IAuthenticationService authenticationService)
+        {
+            _authenticationService = authenticationService;
+        }
         [HttpPost]
         public IActionResult Login(LoginModel loginModel)
         {
             var loginResult = _authenticationService.Login(loginModel);
             if (loginResult != null)
             {
-                return new ObjectResult(new { sessionID = loginResult, verifyKey = _authenticationService.GetVerifyKey(loginModel) });
+                return new ObjectResult(new { sessionID = loginResult });
             }
             else
             {
@@ -35,7 +37,7 @@ namespace InstaBotPrototype.Controllers
             var registerResult = _authenticationService.Register(loginModel);
             if (registerResult != null)
             {
-                return new ObjectResult(new { sessionID = registerResult, verifyKey = _authenticationService.GetVerifyKey(loginModel) });
+                return new ObjectResult(new { sessionID = registerResult });
             }
             else
             {

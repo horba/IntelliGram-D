@@ -13,7 +13,9 @@ namespace InstaBotPrototype.Services.Instagram
         // Adress of the IntelliGram application
         const string redirectUri = "http://localhost:58687";
         const int postsAmount = 10;
-
+        const string baseUri = "https://api.instagram.com/";
+        const string userUri = baseUri + "v1/users/";
+        const string authUri = baseUri + "oauth/authorize?client_id=";
         // All users, registered in the sandbox.
         // To add new user, you need to add him to the sandbox first, then you
         // need to use authorize and use GetAllPermissions() method, to get an access token
@@ -26,22 +28,24 @@ namespace InstaBotPrototype.Services.Instagram
 
         public string GetUserId(string username)
         {
-            string getUserInfo = "https://api.instagram.com/v1/users/search?q=" + username + "&access_token=" + standartToken;
+            string getUserInfo = userUri + "search?q=" + username + "&access_token=" + standartToken;
             string response = GetResponse(getUserInfo);
             UsersInfo info = JsonConvert.DeserializeObject<UsersInfo>(response);
             return info.Users[0].Id;
         }
         public string GetUsername(string token)
         {
-            string getUserInfo = "https://api.instagram.com/v1/users/self/?&access_token=" + token;
+            string getUserInfo = userUri + "self/?&access_token=" + token;
             string response = GetResponse(getUserInfo);
             UserInfo info = JsonConvert.DeserializeObject<UserInfo>(response);
             return info.User.Username;
         }
-
+        private string getAccessTokenUrlParam(string userId) {
+            return "access_token=" + accessTokens[userId];
+        }
         public IEnumerable<ImageData> GetRecentUserPosts(string userId)
         {
-            string getRecentMedia = "https://api.instagram.com/v1/users/" + userId + "/media/recent?access_token=" + accessTokens[userId];
+            string getRecentMedia = userUri + userId + "/media/recent?" + getAccessTokenUrlParam(userId);
             string response = GetResponse(getRecentMedia);
             Post posts = JsonConvert.DeserializeObject<Post>(response);
             return posts.Images;
@@ -60,16 +64,15 @@ namespace InstaBotPrototype.Services.Instagram
 
         public UsersInfo GetFollowers(string userId)
         {
-            string getFollowers = "https://api.instagram.com/v1/users/" + userId + "/follows?access_token=" + accessTokens[userId];
+            string getFollowers = userUri + userId + "/follows?"+ getAccessTokenUrlParam(userId);
             string response = GetResponse(getFollowers);
             UsersInfo followers = JsonConvert.DeserializeObject<UsersInfo>(response);
             return followers;
         }
         public WebResponse GetAllPermissions()
         {
-            string authorization = "https://api.instagram.com/oauth/authorize?client_id=" + clientId + "&redirect_uri=" + redirectUri + "&scope=basic+public_content+comments+follower_list&response_type=token";
+            string authorization = authUri + clientId + "&redirect_uri=" + redirectUri + "&scope=basic+public_content+comments+follower_list&response_type=token";
             var webRequest = WebRequest.Create(authorization);
-            //var webResponse = webRequest.GetResponse();
             return webRequest.GetResponse();
         }
 
@@ -87,13 +90,6 @@ namespace InstaBotPrototype.Services.Instagram
         {
             throw new NotImplementedException();
         }
-
-        public void GetUsersToken()
-        {
-            var resp = GetAllPermissions();
-
-        }
-
         #region ClassesForDeserialization
         public class User
         {
@@ -153,4 +149,3 @@ namespace InstaBotPrototype.Services.Instagram
         #endregion
     }
 }
-

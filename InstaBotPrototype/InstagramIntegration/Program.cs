@@ -197,10 +197,11 @@ namespace InstagramIntegration
                          }
                          Console.WriteLine();
                          ++counter;
-                         Message msg = new Message(0, chatID.Value, post.Images.StandartResolution.Url);
-                         InsertMessage(msg);
+                         if (chatID.HasValue) {
+                             Message msg = new Message(chatID.Value, post.Images.StandartResolution.Url);
+                             InsertMessage(msg);
+                         }
                      }
-
                  }
              }
              Console.ReadKey();

@@ -3,10 +3,10 @@ using System.Data;
 using System.Configuration;
 using System.Collections.Generic;
 using System.Data.SqlClient;
-using InstaBotPrototype.Services.DB;
 using System.Data.Common;
+using InstaBotPrototype.Models;
 
-namespace InstaBotPrototype.Models
+namespace InstaBotPrototype.Services.DB
 {
     public class ConfigService : IConfigService
     {
@@ -46,9 +46,9 @@ namespace InstaBotPrototype.Models
                 {
                     try
                     {
-                          configModel.Tags = GetTagsByConfigId(id, connection);
-                          configModel.Topics = GetTopicsByConfigId(id, connection);
-                          return configModel;
+                        configModel.Tags = GetTagsByConfigId(id, connection);
+                        configModel.Topics = GetTopicsByConfigId(id, connection);
+                        return configModel;
                     }
                     catch (Exception e)
                     {
@@ -63,19 +63,38 @@ namespace InstaBotPrototype.Models
             return null;
         }
 
-        public void SaveConfig(ConfigurationModel config, String sessionId)
+        public void SaveConfig(ConfigurationModel model, String sessionId)
         {
-            using (var connection =
-                new SqlConnection(connectionString))
+            using (var connection = new SqlConnection(connectionString))
             {
                 try
                 {
                     connection.Open();
-                    AddConfig(config, sessionId, connection);
+                    string addConfigQuery =
+                       "INSERT INTO Configuration (UserId) " +
+                       "VALUES (@UserId); " +
+                       "SELECT @ConfigID = SCOPE_IDENTITY();";
+                    SqlCommand addConfigCmd = new SqlCommand(addConfigQuery, connection);
+                    addConfigCmd.Parameters.Add("@UserId", SqlDbType.Int).Value = GetUserIdBySession(sessionId);
+                    SqlParameter configID = new SqlParameter()
+                    {
+                        ParameterName = "@ConfigID",
+                        SqlDbType = SqlDbType.Int,
+                        Direction = ParameterDirection.Output
+                    };
+                    addConfigCmd.Parameters.Add(configID);
+                    addConfigCmd.ExecuteNonQuery();
+
+                    model.ConfigId = (int)configID.Value;
+
+                    TrimTagsTopics(model);
+
+                    AddTopicsToConfig(model.Topics, (int)model.ConfigId, connection);
+                    AddTagsToConfig(model.Tags, (int)model.ConfigId, connection);
                 }
-                finally
+                catch (Exception ex)
                 {
-                    connection.Close();
+                    Console.WriteLine(ex.Message);
                 }
             }
         }
@@ -111,44 +130,80 @@ namespace InstaBotPrototype.Models
             }
             return userId;
         }
+        public int? GetVerifyKey(string sessionId)
+        {
+            int? verifyKey = null;
+            using (var dbConnection = factory.CreateConnection())
+            {
+                dbConnection.ConnectionString = connectionString;
+                dbConnection.Open();
+                var id = GetUserIdBySession(sessionId);
+                var selectTelegram = factory.CreateCommand();
+                selectTelegram.Connection = dbConnection;
+                selectTelegram.CommandText = $"SELECT TelegramVerificationKey FROM dbo.TelegramVerification WHERE UserId = @id";
+                selectTelegram.Parameters.Add(new SqlParameter
+                {
+                    ParameterName = "@id",
+                    SqlDbType = SqlDbType.Int,
+                    Value = id
+                });
+                var readerKey = selectTelegram.ExecuteReader();
+                if (readerKey.HasRows)
+                {
+                    readerKey.Read();
+                    verifyKey = readerKey.GetInt32(0);
+                }
+                readerKey.Close();
+            }
+            return verifyKey;
+        }
+        public void SaveInstagramToken(long id, string nickname, string tokenStr, string sessionId)
+        {
+            using (var dbConnection = factory.CreateConnection())
+            {
+                dbConnection.ConnectionString = connectionString;
+                dbConnection.Open();
+                var insertCmd = factory.CreateCommand();
+                insertCmd.Connection = dbConnection;
+                insertCmd.CommandText = "INSERT INTO InstagramIntegration VALUES (@UserId,@InstaId,@Nick,@Token)";
+                var userIdParam = factory.CreateParameter();
+                userIdParam.ParameterName = "@InstaId";
+                userIdParam.Value = id;
+                var nickParam = factory.CreateParameter();
+                nickParam.ParameterName = "@Nick";
+                nickParam.Value = nickname;
+                var tokenParam = factory.CreateParameter();
+                tokenParam.ParameterName = "@Token";
+                tokenParam.Value = tokenStr;
+                var userid = GetUserIdBySession(sessionId);
+                var idParam = factory.CreateParameter();
+                idParam.ParameterName = "@UserId";
+                idParam.Value = userid.Value;
+                insertCmd.Parameters.AddRange(new[] { idParam, userIdParam, nickParam, tokenParam });
+                insertCmd.ExecuteNonQuery();
+            }
+        }
+        public bool IsUserVerifiedInInstagram(string sessionId)
+        {
+            using (var dbConnection = factory.CreateConnection())
+            {
+                var id = GetUserIdBySession(sessionId);
+                dbConnection.ConnectionString = connectionString;
+                dbConnection.Open();
+                var insertCmd = factory.CreateCommand();
+                insertCmd.Connection = dbConnection;
+                insertCmd.CommandText = "SELECT COUNT (*) FROM InstagramIntegration WHERE UserId = @Id";
+                var userIdParam = factory.CreateParameter();
+                userIdParam.ParameterName = "@Id";
+                userIdParam.Value = id;
+                insertCmd.Parameters.AddRange(new[] { userIdParam });
+                return Convert.ToInt32(insertCmd.ExecuteScalar()) == 1;
+            }
+        }
         #endregion
 
         #region Private helper methods
 
-        private void AddConfig(ConfigurationModel model, String sessionId, SqlConnection connection)
-        {
-            try
-            {
-                string addConfigQuery =
-                    "INSERT INTO Configuration (UserId) " +
-                    "VALUES (@UserId); " +
-                    "SELECT @ConfigID = SCOPE_IDENTITY();";
-
-                SqlCommand addConfigCmd = new SqlCommand(addConfigQuery, connection);
-                addConfigCmd.Parameters.Add("@UserId", SqlDbType.Int).Value = GetUserIdBySession(sessionId);
-                SqlParameter configID = new SqlParameter()
-                {
-                    ParameterName = "@ConfigID",
-                    SqlDbType = SqlDbType.Int,
-                    Direction = ParameterDirection.Output
-                };
-                addConfigCmd.Parameters.Add(configID);
-                addConfigCmd.ExecuteNonQuery();
-
-                model.ConfigId = (int)configID.Value;
-
-                TrimTagsTopics(model);
-
-                AddTopicsToConfigId(model.Topics, (int)model.ConfigId, connection);
-                AddTagsToConfigId(model.Tags, (int)model.ConfigId, connection);
-
-
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
         private void TrimTagsTopics(ConfigurationModel model)
         {
             foreach (var tag in model.Tags)
@@ -162,7 +217,7 @@ namespace InstaBotPrototype.Models
             }
         }
 
-        
+
         private IEnumerable<TopicModel> GetTopicsByConfigId(int? configId, SqlConnection connection)
         {
             if (configId != null)
@@ -246,7 +301,7 @@ namespace InstaBotPrototype.Models
         private int AddTag(string tag, SqlConnection connection)
         {
             var addTagCmd =
-                new SqlCommand("INSERT INTO Tag (Tag) VALUES (@Tag);SELECT @TagID = SCOPE_IDENTITY()", connection);
+                    new SqlCommand("INSERT INTO Tag (Tag) VALUES (@Tag);SELECT @TagID = SCOPE_IDENTITY()", connection);
             addTagCmd.Parameters.Add(new SqlParameter() { ParameterName = "@Tag", SqlDbType = SqlDbType.NVarChar, Value = tag });
             var tagID = new SqlParameter
             {
@@ -256,25 +311,31 @@ namespace InstaBotPrototype.Models
             };
             addTagCmd.Parameters.Add(tagID);
             addTagCmd.ExecuteNonQuery();
-
             return (int)tagID.Value;
         }
 
         private int AddTopic(string topic, SqlConnection connection)
         {
-            var addTopicCmd =
-                    new SqlCommand("INSERT INTO Topic (Topic) VALUES (@Topic);SELECT @TopicID = SCOPE_IDENTITY()", connection);
-            addTopicCmd.Parameters.Add(new SqlParameter() { ParameterName = "@Topic", SqlDbType = SqlDbType.NVarChar, Value = topic });
-            var topicID = new SqlParameter
+            var topicId = GetTopicId(topic, connection);
+            if (!topicId.HasValue)
             {
-                ParameterName = "@TopicID",
-                SqlDbType = SqlDbType.Int,
-                Direction = ParameterDirection.Output
-            };
-            addTopicCmd.Parameters.Add(topicID);
-            addTopicCmd.ExecuteNonQuery();
-
-            return (int)topicID.Value;
+                var addTopicCmd =
+                    new SqlCommand("INSERT INTO Topic (Topic) VALUES (@Topic);SELECT @TopicID = SCOPE_IDENTITY()", connection);
+                addTopicCmd.Parameters.Add(new SqlParameter() { ParameterName = "@Topic", SqlDbType = SqlDbType.NVarChar, Value = topic });
+                var topicID = new SqlParameter
+                {
+                    ParameterName = "@TopicID",
+                    SqlDbType = SqlDbType.Int,
+                    Direction = ParameterDirection.Output
+                };
+                addTopicCmd.Parameters.Add(topicID);
+                addTopicCmd.ExecuteNonQuery();
+                return (int)topicID.Value;
+            }
+            else
+            {
+                return topicId.Value;
+            }
         }
 
         private int? GetTagId(string tag, SqlConnection connection)
@@ -286,17 +347,10 @@ namespace InstaBotPrototype.Models
 
                 if (tagExists)
                 {
-                    using (var getTagIdCmd = new SqlCommand("SELECT @TagID = TagID FROM Tag WHERE Tag = @Tag", connection))
+                    using (var getTagIdCmd = new SqlCommand("SELECT TagID FROM Tag WHERE Tag = @Tag", connection))
                     {
-                        var tagId = new SqlParameter
-                        {
-                            ParameterName = "@TagID",
-                            SqlDbType = SqlDbType.Int,
-                            Direction = ParameterDirection.Output
-                        };
-                        getTagIdCmd.Parameters.Add(tagId);
                         getTagIdCmd.Parameters.Add("@Tag", SqlDbType.NVarChar, fieldLength).Value = tag;
-                        return (int?)tagId.Value;
+                        return Convert.ToInt32(getTagIdCmd.ExecuteScalar());
                     }
                 }
                 return null;
@@ -309,44 +363,16 @@ namespace InstaBotPrototype.Models
             {
                 topicExistsCmd.Parameters.Add("@Topic", SqlDbType.NVarChar, fieldLength).Value = topic;
                 bool topicExists = Convert.ToBoolean(topicExistsCmd.ExecuteScalar());
-
                 if (topicExists)
                 {
-                    using (var getTopicIdCmd = new SqlCommand("SELECT @TopicID = TopicID FROM Topic WHERE Topic = @Topic", connection))
+                    using (var getTopicIdCmd = new SqlCommand("SELECT TopicID FROM Topic WHERE Topic = @Topic", connection))
                     {
-                        var topicId = new SqlParameter
-                        {
-                            ParameterName = "@TopicID",
-                            SqlDbType = SqlDbType.Int,
-                            Direction = ParameterDirection.Output
-                        };
-                        getTopicIdCmd.Parameters.Add(topicId);
                         getTopicIdCmd.Parameters.Add("@Topic", SqlDbType.NVarChar, fieldLength).Value = topic;
-                        return (int?)topicId.Value;
+                        return Convert.ToInt32(getTopicIdCmd.ExecuteScalar());
                     }
                 }
                 return null;
             }
-        }
-
-        private bool TopicExists(string topic, SqlConnection connection, out int topicId)
-        {
-            var topicCommand = new SqlCommand(
-                "SELECT COUNT(TopicID) FROM Topic WHERE Topic = @Topic;" +
-                "SELECT @TopicID = TopicID FROM Topic WHERE Topic = @Topic", connection);
-            var topicID = new SqlParameter
-            {
-                ParameterName = "@TopicID",
-                SqlDbType = SqlDbType.Int,
-                Direction = ParameterDirection.Output
-            };
-            topicCommand.Parameters.Add(topicID);
-            topicCommand.Parameters.Add("@Topic", SqlDbType.NVarChar, fieldLength).Value = topic.Trim(trimChar);
-
-            bool result = Convert.ToBoolean(topicCommand.ExecuteScalar());
-            topicId = result ? (int)topicID.Value : -1;
-
-            return result;
         }
 
         private void AssignConfigTag(int tagId, int configId, SqlConnection connection)
@@ -355,7 +381,6 @@ namespace InstaBotPrototype.Models
             {
                 configTagExistsCmd.Parameters.Add(new SqlParameter { ParameterName = "@ConfigID", SqlDbType = SqlDbType.Int, Value = configId });
                 configTagExistsCmd.Parameters.Add(new SqlParameter { ParameterName = "@TagID", SqlDbType = SqlDbType.Int, Value = tagId });
-
                 // Not exists
                 if (!Convert.ToBoolean(configTagExistsCmd.ExecuteScalar()))
                 {
@@ -366,10 +391,7 @@ namespace InstaBotPrototype.Models
                         addConfigTagCmd.ExecuteNonQuery();
                     }
                 }
-
             }
-
-
         }
 
         private void AssignConfigTopic(int topicId, int? configId, SqlConnection connection)
@@ -389,39 +411,34 @@ namespace InstaBotPrototype.Models
                         addConfigTopicCmd.ExecuteNonQuery();
                     }
                 }
-
-
             }
         }
 
-        private void AddTagsToConfigId(IEnumerable<TagModel> tags, int configId, SqlConnection connection)
+        private void AddTagsToConfig(IEnumerable<TagModel> tags, int configId, SqlConnection connection)
         {
-            int? tagId;
             foreach (var tag in tags)
             {
-                tagId = GetTagId(tag.Tag, connection);
-                if (tagId == null)
+                var tagId = GetTagId(tag.Tag, connection);
+                if (!tagId.HasValue)
                 {
                     tagId = AddTag(tag.Tag, connection);
                 }
-                AssignConfigTag((int)tagId, configId, connection);
+                AssignConfigTag(tagId.Value, configId, connection);
             }
         }
 
-        private void AddTopicsToConfigId(IEnumerable<TopicModel> topics, int configId, SqlConnection connection)
+        private void AddTopicsToConfig(IEnumerable<TopicModel> topics, int configId, SqlConnection connection)
         {
-            int? topicId;
             foreach (var topic in topics)
             {
-                topicId = GetTopicId(topic.Topic, connection);
-                if (topicId == null)
+                var topicId = GetTagId(topic.Topic, connection);
+                if (!topicId.HasValue)
                 {
                     topicId = AddTopic(topic.Topic, connection);
                 }
-                AssignConfigTopic((int)topicId, (int)configId, connection);
+                AssignConfigTopic(topicId.Value, configId, connection);
             }
         }
-
         #endregion
     }
 }

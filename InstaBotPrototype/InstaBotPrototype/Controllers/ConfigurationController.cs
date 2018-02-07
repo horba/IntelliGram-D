@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace InstaBotPrototype.Controllers
 {
     [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     public class ConfigurationController : Controller
     {
 
@@ -66,6 +67,11 @@ namespace InstaBotPrototype.Controllers
             {
                 // code here
             }
+        }
+        [HttpGet]
+        public IActionResult VerifyKey()
+        {
+            return new ObjectResult(new { verifyKey = configService.GetVerifyKey(Request.Cookies["sessionID"]) });
         }
         private bool IsLoggedIn()
         {

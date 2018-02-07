@@ -8,6 +8,6 @@ namespace InstaBotPrototype.Services.Instagram
     {
         int Login(string username, string password);
         IEnumerable<ImageData> GetLatestPosts(string username);
-        void GetUsersToken();
+        string GetUsername(string token);
     }
 }

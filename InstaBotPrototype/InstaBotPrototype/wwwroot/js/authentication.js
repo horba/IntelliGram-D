@@ -21,15 +21,15 @@ var $signUpForm = $("#modalSignup");
 $signUpForm.submit(function (event) {
     clickHandler(event, "#signUpError", $signUpForm);
 });
-$("#logOut").click(function () {
-    console.log("dfhdfhdfhdfdfjdjdfjdj");
+$("#logOut").click(function (e) {
+    e.preventDefault();
     document.cookie = "sessionID" + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     $("#loginPopup").css("display", "none");
     $("#signupPopup").css("display", "none");
     $("#configPage").css("display", "none");
     $("#authPage").css("display", "block");
 });
-function clickHandler(event,errorDiv,$form) {
+function clickHandler(event, errorDiv, $form) {
     event.preventDefault();
     $.ajax({
         type: $form.attr('method'),
@@ -38,9 +38,7 @@ function clickHandler(event,errorDiv,$form) {
         dataType: "json",
         success: function (response) {
             document.cookie = "sessionID=" + response.sessionID;
-            $("#configPage").css("display", "block");
-            $("#authPage").css("display", "none");
-            $("#verifyKeyLabel").text(response.verifyKey);
+            initCongigPage();
         },
         error: function (response) {
             $(errorDiv).text(response.responseJSON.errorMessage);
