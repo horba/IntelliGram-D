@@ -28,7 +28,7 @@ namespace TelegramTestBot
         {
             try
             {
-                telegramApiKey = "529446455:AAF2MeFNRlDeII-7lGaB3PchXd4zDEQRNZs";
+                telegramApiKey = ConfigurationManager.AppSettings["TelegramApiKey"];
                 bot = new TelegramBotClient(telegramApiKey);
 
                 telegramDb = new TelegramDb(ConfigurationManager.ConnectionStrings[1].ConnectionString);

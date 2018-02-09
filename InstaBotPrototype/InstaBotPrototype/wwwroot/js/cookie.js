@@ -1,21 +1,21 @@
 ﻿function getCookie(name) {
     var value = "; " + document.cookie;
     var parts = value.split("; " + name + "=");
-    if (parts.length == 2)
+    if (parts.length === 2)
         return parts.pop().split(";").shift();
 }
-function initCongigPage() {
+function initConfigPage() {
     $.ajax('/api/configuration/VerifyKey', { method: 'GET' })
         .then(function (response) {
             $("#verifyKeyLabel").text(response.verifyKey);
-            $("#configPage").css("display", "block");
-            $("#authPage").css("display", "none");
+            $("#configPage").show();
+            $("#authPage").hide();
         });
 }
 if (getCookie("sessionID")) {
-    initCongigPage();
+    initConfigPage();
 }
 else {
-    $("#configPage").css("display", "none");
-    $("#authPage").css("display", "block");
+    $("#configPage").hide();
+    $("#authPage").show();
 }

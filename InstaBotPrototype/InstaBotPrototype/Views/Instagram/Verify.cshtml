@@ -4,7 +4,7 @@
     <script>
         $.ajax('/api/Instagram', { method: 'POST', data: { token: window.location.href } })
             .then(function (response) {
-                window.location.href = "http://localhost:58687";
+                window.location.href = "@System.Configuration.ConfigurationManager.AppSettings["Localhost"]";
             });
 
     </script>
