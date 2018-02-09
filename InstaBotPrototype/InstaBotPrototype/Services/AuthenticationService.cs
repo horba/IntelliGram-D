@@ -9,42 +9,6 @@ namespace InstaBotPrototype.Services
     {
         string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
         DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
-
-        public int? GetVerifyKey(LoginModel model)
-        {
-            int? verifyKey = null;
-            using (var dbConnection = factory.CreateConnection())
-            {
-                dbConnection.ConnectionString = connectionString;
-                dbConnection.Open();
-                var selectID = factory.CreateCommand();
-                selectID.Connection = dbConnection;
-                selectID.CommandText = $"SELECT Id FROM dbo.Users WHERE Login = @login and Password = @password";
-                var login = CreateParameter("@login", model.Login);
-                var password = CreateParameter("@password", model.Password);
-                selectID.Parameters.AddRange(new[] { login, password });
-                var readerID = selectID.ExecuteReader();
-                if (readerID.HasRows)
-                {
-                    readerID.Read();
-                    var id = readerID.GetInt32(0);
-                    readerID.Close();
-                    var selectTelegram = factory.CreateCommand();
-                    selectTelegram.Connection = dbConnection;
-                    selectTelegram.CommandText = $"SELECT TelegramVerificationKey FROM dbo.TelegramVerification WHERE UserId = @id";
-                    selectTelegram.Parameters.Add(CreateParameter("@id", id));
-                    var readerKey = selectTelegram.ExecuteReader();
-                    if (readerKey.HasRows)
-                    {
-                        readerKey.Read();
-                        verifyKey = readerKey.GetInt32(0);
-                    }
-                    readerKey.Close();
-                }
-            }
-            return verifyKey;
-        }
-
         public string Login(LoginModel model)
         {
             Guid? sessionID = null;
@@ -76,11 +40,10 @@ namespace InstaBotPrototype.Services
             return sessionID?.ToString();
         }
 
-        public String Register(LoginModel model)
+        public string Register(LoginModel model)
         {
             var dbConnection = factory.CreateConnection();
             dbConnection.ConnectionString = connectionString;
-
             dbConnection.Open();
 
             var checkUserExists = factory.CreateCommand();

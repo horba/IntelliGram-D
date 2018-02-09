@@ -7,8 +7,14 @@ namespace DBMigrator.Migrations
     {
         public M201711290745_CreateUsersTable(object factory, object connection) : base(factory as DbProviderFactory, connection as DbConnection)
         {
-            ApplyCommand.CommandText = "create table dbo.Users (Id int identity, Login nvarchar(100), Password nvarchar(100), primary key(Id))";
-            ReverseCommand.CommandText = "drop table dbo.Users";
+            ApplyCommand.CommandText = @"CREATE TABLE dbo.Users 
+           								(Id int identity, 
+            							Login nvarchar(100),
+             							Password nvarchar(100),
+             							RegisterDate DateTime,
+             							Email nvarchar(100),
+            							PRIMARY KEY(Id))";
+            ReverseCommand.CommandText = "DROP TABLE dbo.Users";
         }
     }
 }

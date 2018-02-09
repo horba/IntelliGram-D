@@ -43,28 +43,29 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Migrations\M201712050618_AddLastLoginFieldToUsersTable.cs" />
-    <Compile Include="Migrations\M201712051755_AddRegisterDateFieldToUsersTable.cs" />
-    <Compile Include="Migrations\M201711290739_CreateMigrationsTable.cs" />
-    <Compile Include="Migrations\M201711290745_CreateUsersTable.cs" />
     <Compile Include="DBMigration.cs" />
     <Compile Include="IndexerAttribute.cs" />
-    <Compile Include="Migrations\M201712081553_AddEmailColumnToUsersTable.cs" />
+    <Compile Include="Migrations\M201711290739_CreateMigrationsTable.cs" />
+    <Compile Include="Migrations\M201711290745_CreateUsersTable.cs" />
     <Compile Include="Migrations\M201712310814_CreateSessionsTable.cs" />
+    <Compile Include="Migrations\M201801082211_CreateConfigurationTable.cs" />
+    <Compile Include="Migrations\M201801082220_CreateTopicTable.cs" />
+    <Compile Include="Migrations\M201801082224_CreateTagTable.cs" />
+    <Compile Include="Migrations\M201801082226_CreateConfigTopicTable.cs" />
+    <Compile Include="Migrations\M201801082231_CreateConfigTagTable.cs" />
     <Compile Include="Migrations\M201801100151_CreateTelegramIntegrationTable.cs" />
     <Compile Include="Migrations\M201801102326_CreateTelegramVerificationTable.cs" />
     <Compile Include="Migrations\M201801102327_CreateUserInsertTrigger.cs" />
     <Compile Include="Migrations\M201801110327_CreateTelegramIntegrationUpdateTrigger.cs" />
-    <Compile Include="Migrations\M2018001082211_CreateConfigurationTable.cs" />
-    <Compile Include="Migrations\M2018001082220_CreateTopicTable.cs" />
-    <Compile Include="Migrations\M2018001082224_CreateTagTable.cs" />
-    <Compile Include="Migrations\M2018001082226_CreateConfigTopicTable.cs" />
-    <Compile Include="Migrations\M2018001082231_CreateConfigTagTable.cs" />
+    <Compile Include="Migrations\M201801211350_CreateInstagramIntegrationTable.cs" />
+    <Compile Include="Migrations\M201801301405_CreateMessagesTable.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

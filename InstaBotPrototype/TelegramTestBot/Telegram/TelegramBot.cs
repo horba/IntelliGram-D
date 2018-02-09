@@ -11,7 +11,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace TelegramTestBot
 {
-    class TelegramBot
+    public class TelegramBot
     {
         // Bot username: IntelliGram
         private static string telegramApiKey;
@@ -80,7 +80,7 @@ namespace TelegramTestBot
 
         #region Bot commands
 
-        private static async void ShowHelp(Message message) => await Task.Run(() => SendMessage(message.Chat.Id, "Hi there! This bot helps you getting Instagram photos."));
+        private static async void ShowHelp(Message message) => await Task.Run(() => SendMessageAsync(message.Chat.Id, "Hi there! This bot helps you getting Instagram photos."));
 
         private static async void DialogStart(Message message)
         {
@@ -125,7 +125,9 @@ namespace TelegramTestBot
 
         #region Helper methods
 
-        private static async void SendMessage(long chatId, string text) => await bot.SendTextMessageAsync(chatId, text);
+        public static async void SendMessageAsync(long chatId, string text) => await bot.SendTextMessageAsync(chatId, text);
+
+        public static void SendMessage(long chatId, string text) => bot.SendTextMessageAsync(chatId, text);
 
         #endregion
 
@@ -137,16 +139,16 @@ namespace TelegramTestBot
             {
                 if (await telegramDb.VerifyAsync(telegramVerificationKey, chatId))
                 {
-                    SendMessage(chatId, "Congratulations! You have been successfully verified");
+                    SendMessageAsync(chatId, "Congratulations! You have been successfully verified");
                 }
                 else
                 {
-                    SendMessage(chatId, "Please, enter correct verification code.\nThis code is on your web page");
+                    SendMessageAsync(chatId, "Please, enter correct verification code.\nThis code is on your web page");
                 }
             }
             else
             {
-                SendMessage(chatId, "Please, enter correct verification code");
+                SendMessageAsync(chatId, "Please, enter correct verification code");
             }
         }
 
@@ -184,7 +186,7 @@ namespace TelegramTestBot
                     }
                     else
                     {
-                        SendMessage(message.Chat.Id, "Please, enter one of the available commands");
+                        SendMessageAsync(message.Chat.Id, "Please, enter one of the available commands");
                     }
                 }
                 else
