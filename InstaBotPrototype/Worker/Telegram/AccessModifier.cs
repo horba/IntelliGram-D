@@ -1,4 +1,4 @@
-﻿namespace TelegramTestBot
+﻿namespace Worker
 {
     enum AccessModifier
     {

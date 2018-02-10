@@ -1,24 +1,25 @@
-﻿using InstaBotPrototype.Services.Instagram;
+﻿using InstaBotPrototype.Models;
 using InstaBotPrototype.Services.AI;
-using InstaBotPrototype.Models;
+using InstaBotPrototype.Services.Instagram;
 using System;
-using System.Net.Http;
-using System.Linq;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Configuration;
+using System.Data.Common;
+using System.Linq;
+using System.Net.Http;
 
-namespace InstagramIntegration
+namespace Worker
 {
-    class Program
+    class MessageCreator
     {
-        private static IInstagramService instagramService = new InstagramService();
-        private static IRecognizer recognizer = new MicrosoftImageRecognizer();
-        private static string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
-        private static DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
-        static IEnumerable<String> GetUserTopics(int userId)
+        IInstagramService instagramService = new InstagramService();
+        IRecognizer recognizer = new MicrosoftImageRecognizer();
+        string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
+        DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
+
+        IEnumerable<string> GetUserTopics(int userId)
         {
-            List<string> topics = new List<string>();
+            var topics = new List<string>();
             using (var DbConnection = factory.CreateConnection())
             {
                 DbConnection.ConnectionString = connectionString;
@@ -43,9 +44,10 @@ namespace InstagramIntegration
             }
             return topics;
         }
-        static IEnumerable<String> GetUserTags(int userId)
+
+        IEnumerable<string> GetUserTags(int userId)
         {
-            List<string> tags = new List<string>();
+            var tags = new List<string>();
             using (var DbConnection = factory.CreateConnection())
             {
                 DbConnection.ConnectionString = connectionString;
@@ -70,7 +72,8 @@ namespace InstagramIntegration
             }
             return tags;
         }
-       static long? GetChatIdByUserId(int id)
+
+        long? GetChatIdByUserId(int id)
         {
             long? userId = null;
             using (var DbConnection = factory.CreateConnection())
@@ -97,7 +100,8 @@ namespace InstagramIntegration
             }
             return userId;
         }
-        static void InsertMessage(Message msg)
+
+        void InsertMessage(Message msg)
         {
             using (var DbConnection = factory.CreateConnection())
             {
@@ -105,7 +109,7 @@ namespace InstagramIntegration
                 DbConnection.Open();
                 var insertCmd = factory.CreateCommand();
                 insertCmd.Connection = DbConnection;
-                
+
 
                 var chatIdParam = factory.CreateParameter();
                 chatIdParam.ParameterName = "@ChatId";
@@ -121,7 +125,8 @@ namespace InstagramIntegration
 
             }
         }
-        static int? GetUserIdByInstagram(String nickname)
+
+        int? GetUserIdByInstagram(string nickname)
         {
             int? userId = null;
             using (var DbConnection = factory.CreateConnection())
@@ -145,9 +150,10 @@ namespace InstagramIntegration
             }
             return userId;
         }
-        static IEnumerable<String> GetAllInstagramUsers()
+
+        IEnumerable<string> GetAllInstagramUsers()
         {
-            List<string> nicknames = new List<string>();
+            var nicknames = new List<string>();
             using (var DbConnection = factory.CreateConnection())
             {
                 DbConnection.ConnectionString = connectionString;
@@ -164,48 +170,48 @@ namespace InstagramIntegration
             }
             return nicknames;
         }
-        static void Main(string[] args)
-        {
-             var client = new HttpClient();
-             foreach (var user in GetAllInstagramUsers())
-             {
-                 Console.WriteLine(String.Format("User : {0}", user));
-                 var id = GetUserIdByInstagram(user);
-                 var tags = GetUserTags(id.Value);
-                 var topics = GetUserTopics(id.Value);
-                 var chatID = GetChatIdByUserId(id.Value);
-                 int counter = 1;
-                 foreach (var post in instagramService.GetLatestPosts(user))
-                 {
-                     byte[] response = client.GetByteArrayAsync(post.Images.StandartResolution.Url).Result;
-                     var matchingTopics = topics.Intersect(recognizer.RecognizeTopic(response));
-                     var matchingTags = tags.Intersect(post.Tags);
-                     if (matchingTopics.Count() > 0 || matchingTags.Count() > 0)
-                     {
-                         Console.WriteLine("Image # " + counter);
-                         Console.WriteLine(String.Format("Url : {0}", post.Images.StandartResolution.Url));
-                         Console.Write("Matching topics : ");
-                         foreach (var topic in matchingTopics)
-                         {
-                             Console.Write(topic + " ");
-                         }
-                         Console.WriteLine();
-                         Console.Write("Matching tags : ");
-                         foreach (var tag in matchingTags)
-                         {
-                             Console.Write(tag + " ");
-                         }
-                         Console.WriteLine();
-                         ++counter;
-                         if (chatID.HasValue) {
-                             Message msg = new Message(chatID.Value, post.Images.StandartResolution.Url);
-                             InsertMessage(msg);
-                         }
-                     }
-                 }
-             }
-             Console.ReadKey();
 
+        public void Start()
+        {
+            var client = new HttpClient();
+            foreach (var user in GetAllInstagramUsers())
+            {
+                Console.WriteLine(string.Format("User : {0}", user));
+                var id = GetUserIdByInstagram(user);
+                var tags = GetUserTags(id.Value);
+                var topics = GetUserTopics(id.Value);
+                var chatID = GetChatIdByUserId(id.Value);
+                var counter = 1;
+                foreach (var post in instagramService.GetLatestPosts(user))
+                {
+                    var response = client.GetByteArrayAsync(post.Images.StandartResolution.Url).Result;
+                    var matchingTopics = topics.Intersect(recognizer.RecognizeTopic(response));
+                    var matchingTags = tags.Intersect(post.Tags);
+                    if (matchingTopics.Count() > 0 || matchingTags.Count() > 0)
+                    {
+                        Console.WriteLine("Image # " + counter);
+                        Console.WriteLine(string.Format("Url : {0}", post.Images.StandartResolution.Url));
+                        Console.Write("Matching topics : ");
+                        foreach (var topic in matchingTopics)
+                        {
+                            Console.Write(topic + " ");
+                        }
+                        Console.WriteLine();
+                        Console.Write("Matching tags : ");
+                        foreach (var tag in matchingTags)
+                        {
+                            Console.Write(tag + " ");
+                        }
+                        Console.WriteLine();
+                        ++counter;
+                        if (chatID.HasValue)
+                        {
+                            var msg = new Message(chatID.Value, post.Images.StandartResolution.Url);
+                            InsertMessage(msg);
+                        }
+                    }
+                }
+            }
         }
     }
 }

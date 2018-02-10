@@ -3,12 +3,12 @@ using System.Data.SqlClient;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 
-namespace TelegramTestBot
+namespace Worker
 {
     class TelegramDb
     {
         private string connectionString;
-          
+
         public TelegramDb(string connectionStr)
         {
             connectionString = connectionStr;
