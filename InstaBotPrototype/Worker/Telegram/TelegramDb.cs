@@ -9,10 +9,7 @@ namespace Worker
     {
         private string connectionString;
 
-        public TelegramDb(string connectionStr)
-        {
-            connectionString = connectionStr;
-        }
+        public TelegramDb(string connectionStr) => connectionString = connectionStr;
 
         #region DB methods
 
