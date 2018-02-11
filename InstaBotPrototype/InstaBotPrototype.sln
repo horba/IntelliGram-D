@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2024
+VisualStudioVersion = 15.0.27130.2026
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InstaBotPrototype", "InstaBotPrototype\InstaBotPrototype.csproj", "{11FFC5F1-984D-440C-AA2D-9306FEE59D7B}"
 EndProject
@@ -10,6 +10,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelegramTestBot", "TelegramTestBot\TelegramTestBot.csproj", "{FACF746F-1BB8-4768-927C-3CF6E4AEF3FF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RepositoryLibrary", "RepositoryLibrary\RepositoryLibrary.csproj", "{AF853208-83B5-4F92-9481-E3FE8DD05186}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageSender", "MessageSender\MessageSender.csproj", "{5E12A343-5F5D-4F70-9B67-29708C7EBC56}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InstagramIntegration", "InstagramIntegration\InstagramIntegration.csproj", "{EB05EC53-CB89-4013-AA68-4BE996D81774}"
+	ProjectSection(ProjectDependencies) = postProject
+		{11FFC5F1-984D-440C-AA2D-9306FEE59D7B} = {11FFC5F1-984D-440C-AA2D-9306FEE59D7B}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +39,14 @@ Global
 		{AF853208-83B5-4F92-9481-E3FE8DD05186}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AF853208-83B5-4F92-9481-E3FE8DD05186}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AF853208-83B5-4F92-9481-E3FE8DD05186}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E12A343-5F5D-4F70-9B67-29708C7EBC56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E12A343-5F5D-4F70-9B67-29708C7EBC56}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E12A343-5F5D-4F70-9B67-29708C7EBC56}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E12A343-5F5D-4F70-9B67-29708C7EBC56}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB05EC53-CB89-4013-AA68-4BE996D81774}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB05EC53-CB89-4013-AA68-4BE996D81774}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB05EC53-CB89-4013-AA68-4BE996D81774}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB05EC53-CB89-4013-AA68-4BE996D81774}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

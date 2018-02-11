@@ -1,17 +1,18 @@
 ﻿$("#btnLogin").click(function () {
-    $("#loginPopup").css("display", "block");
+    $("#loginPopup").show();
 });
 $("#closeLogin").click(function () {
-    $("#loginPopup").css("display", "none");
+    $("#loginPopup").hide();
     $("#loginError").text("");
 });
 $("#btnSignup").click(function () {
-    $("#signupPopup").css("display", "block");
+    $("#signupPopup").show();
 });
 $("#closeSignUp").click(function () {
-    $("#signupPopup").css("display", "none");
+    $("#signupPopup").hide();
     $("#signupError").text("");
 });
+
 var $loginForm = $("#modalLogin");
 $loginForm.submit(function (event) {
     clickHandler(event, "#loginError", $loginForm);
@@ -20,7 +21,15 @@ var $signUpForm = $("#modalSignup");
 $signUpForm.submit(function (event) {
     clickHandler(event, "#signUpError", $signUpForm);
 });
-function clickHandler(event,errorDiv,$form) {
+$("#logOut").click(function (e) {
+    e.preventDefault();
+    document.cookie = "sessionID" + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    $("#loginPopup").hide();
+    $("#signupPopup").hide();
+    $("#configPage").hide();
+    $("#authPage").show();
+});
+function clickHandler(event, errorDiv, $form) {
     event.preventDefault();
     $.ajax({
         type: $form.attr('method'),
@@ -29,9 +38,7 @@ function clickHandler(event,errorDiv,$form) {
         dataType: "json",
         success: function (response) {
             document.cookie = "sessionID=" + response.sessionID;
-            $("#configPage").css("display", "block");
-            $("#authPage").css("display", "none");
-            $("#verifyKeyLabel").text(response.verifyKey);
+            initConfigPage();
         },
         error: function (response) {
             $(errorDiv).text(response.responseJSON.errorMessage);

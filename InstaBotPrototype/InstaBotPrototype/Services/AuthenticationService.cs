@@ -9,42 +9,6 @@ namespace InstaBotPrototype.Services
     {
         string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
         DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
-
-        public int? GetVerifyKey(LoginModel model)
-        {
-            int? verifyKey = null;
-            using (var dbConnection = factory.CreateConnection())
-            {
-                dbConnection.ConnectionString = connectionString;
-                dbConnection.Open();
-                var selectID = factory.CreateCommand();
-                selectID.Connection = dbConnection;
-                selectID.CommandText = $"SELECT Id FROM dbo.Users WHERE Login = @login and Password = @password";
-                var login = CreateParameter("@login", model.Login);
-                var password = CreateParameter("@password", model.Password);
-                selectID.Parameters.AddRange(new[] { login, password });
-                var readerID = selectID.ExecuteReader();
-                if (readerID.HasRows)
-                {
-                    readerID.Read();
-                    var id = readerID.GetInt32(0);
-                    readerID.Close();
-                    var selectTelegram = factory.CreateCommand();
-                    selectTelegram.Connection = dbConnection;
-                    selectTelegram.CommandText = $"SELECT TelegramVerificationKey FROM dbo.TelegramVerification WHERE UserId = @id";
-                    selectTelegram.Parameters.Add(CreateParameter("@id", id));
-                    var readerKey = selectTelegram.ExecuteReader();
-                    if (readerKey.HasRows)
-                    {
-                        readerKey.Read();
-                        verifyKey = readerKey.GetInt32(0);
-                    }
-                    readerKey.Close();
-                }
-            }
-            return verifyKey;
-        }
-
         public string Login(LoginModel model)
         {
             Guid? sessionID = null;
@@ -80,22 +44,34 @@ namespace InstaBotPrototype.Services
         {
             var dbConnection = factory.CreateConnection();
             dbConnection.ConnectionString = connectionString;
-
             dbConnection.Open();
 
-            var insert = factory.CreateCommand();
-            insert.Connection = dbConnection;
-            insert.CommandText = $"INSERT INTO dbo.Users (Login, Email, Password, RegisterDate) VALUES (@login, @email, @password, SYSDATETIME())";
-
+            var checkUserExists = factory.CreateCommand();
+            checkUserExists.Connection = dbConnection;
+            checkUserExists.CommandText = $"SELECT COUNT(Login) FROM dbo.Users WHERE Login = @login";
             var login = CreateParameter("@login", model.Login);
-            var email = CreateParameter("@email", model.Email);
-            var password = CreateParameter("@password", model.Password);
+            checkUserExists.Parameters.Add(login);
+            int usersCount = Convert.ToInt32(checkUserExists.ExecuteScalar());
+            if (usersCount == 0)
+            {
+                var insert = factory.CreateCommand();
+                insert.Connection = dbConnection;
+                insert.CommandText = $"INSERT INTO dbo.Users (Login, Email, Password, RegisterDate) VALUES (@login, @email, @password, SYSDATETIME())";
 
-            insert.Parameters.AddRange(new[] { login, email, password });
-            insert.ExecuteNonQuery();
-            dbConnection.Close();
+                login = CreateParameter("@login", model.Login);
+                var email = CreateParameter("@email", model.Email);
+                var password = CreateParameter("@password", model.Password);
 
-            return Login(model);
+                insert.Parameters.AddRange(new[] { login, email, password });
+                insert.ExecuteNonQuery();
+                dbConnection.Close();
+
+                return Login(model);
+            }
+            else
+            {
+                return null;
+            }
         }
 
         private DbParameter CreateParameter(string name, object value)
