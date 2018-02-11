@@ -1,4 +1,5 @@
 using InstaBotPrototype.Models;
+using Scrypt;
 using System;
 using System.Configuration;
 using System.Data.Common;
@@ -7,8 +8,9 @@ namespace InstaBotPrototype.Services
 {
     public class AuthenticationService : IAuthenticationService
     {
-        string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
-        DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
+        private string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
+        private DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
+        private readonly ScryptEncoder encoder = new ScryptEncoder();
         public string Login(LoginModel model)
         {
             Guid? sessionID = null;
@@ -16,18 +18,20 @@ namespace InstaBotPrototype.Services
             {
                 dbConnection.ConnectionString = connectionString;
                 dbConnection.Open();
-                var selectID = factory.CreateCommand();
-                selectID.Connection = dbConnection;
-                selectID.CommandText = $"SELECT Id FROM dbo.Users WHERE Login = @login and Password = @password";
+                var selectCmd = factory.CreateCommand();
+                selectCmd.Connection = dbConnection;
+                selectCmd.CommandText = $"SELECT Id,Password FROM dbo.Users WHERE Login = @login";
                 var login = CreateParameter("@login", model.Login);
-                var password = CreateParameter("@password", model.Password);
-                selectID.Parameters.AddRange(new[] { login, password });
-                var reader = selectID.ExecuteReader();
+                selectCmd.Parameters.AddRange(new[] { login});
+                var reader = selectCmd.ExecuteReader();
                 if (reader.HasRows)
                 {
                     reader.Read();
                     var id = reader.GetInt32(0);
+                    var passwordHash = reader.GetString(1);
                     reader.Close();
+                    if (!encoder.Compare(model.Password, passwordHash))
+                        return null;
                     sessionID = Guid.NewGuid();
                     var insertSession = factory.CreateCommand();
                     insertSession.Connection = dbConnection;
@@ -60,7 +64,7 @@ namespace InstaBotPrototype.Services
 
                 login = CreateParameter("@login", model.Login);
                 var email = CreateParameter("@email", model.Email);
-                var password = CreateParameter("@password", model.Password);
+                var password = CreateParameter("@password", encoder.Encode(model.Password));
 
                 insert.Parameters.AddRange(new[] { login, email, password });
                 insert.ExecuteNonQuery();
