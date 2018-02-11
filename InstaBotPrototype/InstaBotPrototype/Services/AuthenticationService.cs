@@ -11,6 +11,8 @@ namespace InstaBotPrototype.Services
         private string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
         private DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
         private readonly ScryptEncoder encoder = new ScryptEncoder();
+        private readonly string pepper = ConfigurationManager.AppSettings["Pepper"];
+
         public string Login(LoginModel model)
         {
             Guid? sessionID = null;
@@ -22,7 +24,7 @@ namespace InstaBotPrototype.Services
                 selectCmd.Connection = dbConnection;
                 selectCmd.CommandText = $"SELECT Id,Password FROM dbo.Users WHERE Login = @login";
                 var login = CreateParameter("@login", model.Login);
-                selectCmd.Parameters.AddRange(new[] { login});
+                selectCmd.Parameters.AddRange(new[] { login });
                 var reader = selectCmd.ExecuteReader();
                 if (reader.HasRows)
                 {
@@ -30,8 +32,12 @@ namespace InstaBotPrototype.Services
                     var id = reader.GetInt32(0);
                     var passwordHash = reader.GetString(1);
                     reader.Close();
-                    if (!encoder.Compare(model.Password, passwordHash))
+
+                    if (!encoder.Compare(model.Password + pepper, passwordHash))
+                    {
                         return null;
+                    }
+
                     sessionID = Guid.NewGuid();
                     var insertSession = factory.CreateCommand();
                     insertSession.Connection = dbConnection;
@@ -64,7 +70,7 @@ namespace InstaBotPrototype.Services
 
                 login = CreateParameter("@login", model.Login);
                 var email = CreateParameter("@email", model.Email);
-                var password = CreateParameter("@password", encoder.Encode(model.Password));
+                var password = CreateParameter("@password", encoder.Encode(model.Password + pepper));
 
                 insert.Parameters.AddRange(new[] { login, email, password });
                 insert.ExecuteNonQuery();
