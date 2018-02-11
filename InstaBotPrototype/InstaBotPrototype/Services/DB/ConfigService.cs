@@ -419,7 +419,7 @@ namespace InstaBotPrototype.Services.DB
             foreach (var topic in topics)
             {
                 var current = topic.Topic.Trim();
-                var topicId = GetTagId(current, connection);
+                var topicId = GetTopicId(current, connection);
                 if (!topicId.HasValue)
                 {
                     topicId = AddTopic(current, connection);
