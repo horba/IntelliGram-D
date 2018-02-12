@@ -1,6 +1,6 @@
 ﻿namespace RepositoryLibrary
 {
-    public interface IRepository<TKey, TValue> where TValue : new()
+    public interface IRepository<TKey, TValue>
     {
         void Add(TValue model);
         TValue Get(TKey id);

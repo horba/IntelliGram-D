@@ -4,7 +4,7 @@ using System.Data.Common;
 
 namespace RepositoryLibrary
 {
-    public abstract class Repository<TKey, TValue> : IDisposable, IRepository<TKey, TValue> where TValue : new()
+    public abstract class Repository<TKey, TValue> : IDisposable, IRepository<TKey, TValue>
     {
         public abstract void Add(TValue model);
         public abstract void Delete(TKey id);
