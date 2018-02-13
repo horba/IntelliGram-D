@@ -9,8 +9,8 @@ namespace DBMigrator.Migrations
         {
             ApplyCommand.CommandText = @"CREATE TABLE dbo.Users 
            								(Id int identity, 
-            							Login nvarchar(100),
-             							Password nvarchar(100),
+            							Login nvarchar(60) NOT NULL,
+             							Password nvarchar(128) NOT NULL,
              							RegisterDate DateTime,
              							Email nvarchar(100),
             							PRIMARY KEY(Id))";

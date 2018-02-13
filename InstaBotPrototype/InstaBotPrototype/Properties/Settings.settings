@@ -16,6 +16,8 @@
     </Setting>
     <Setting Name="MicrosoftImageRecognizerSubscriptionKey" Type="System.String" Scope="Application">
       <Value Profile="(Default)">861b894f16b942fd83adacbe78f563d1</Value>
+    <Setting Name="Pepper" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">tsTdk2u/MXKGprcG+cDY0zHI1B0AjsIKr8cahHlmJxM=</Value>
     </Setting>
   </Settings>
 </SettingsFile>
