@@ -206,36 +206,40 @@ namespace Worker
                         ++counter;
                         if (chatID.HasValue)
                         {
-                            var msg = new Message(chatID.Value, post.Images.StandartResolution.Url);
+                            var message = new Message(chatID.Value, post.Images.StandartResolution.Url);
 
-                            var connection = factory.CreateConnection();
-                            connection.ConnectionString = connectionString;
-
-                            using (var command = factory.CreateCommand())
+                            if (IsNew(message))
                             {
-                                command.Connection = connection;
-                                command.CommandText = "select count(ChatId) from dbo.Messages where ChatId = @chatId and Message = @message";
-
-                                var p1 = factory.CreateParameter();
-                                p1.ParameterName = "@chatId";
-                                p1.Value = chatID.Value;
-
-
-                                var p2 = factory.CreateParameter();
-                                p2.ParameterName = "@message";
-                                p2.Value = post.Images.StandartResolution.Url;
-
-                                command.Parameters.AddRange(new[] { p1, p2 });
-                                var count = command.ExecuteNonQuery();
-
-                                if (count == 0)
-                                {
-                                   InsertMessage(msg);
-                                }
+                                InsertMessage(message);
                             }
-
                         }
                     }
+                }
+            }
+
+            bool IsNew(Message message)
+            {
+                var connection = factory.CreateConnection();
+                connection.ConnectionString = connectionString;
+
+                using (var command = factory.CreateCommand())
+                {
+                    command.Connection = connection;
+                    command.CommandText = "select count(ChatId) from dbo.Messages where ChatId = @chatId and Message = @message";
+
+                    var p1 = factory.CreateParameter();
+                    p1.ParameterName = "@chatId";
+                    p1.Value = message.ChatId;
+
+
+                    var p2 = factory.CreateParameter();
+                    p2.ParameterName = "@message";
+                    p2.Value = message.Text;
+
+                    command.Parameters.AddRange(new[] { p1, p2 });
+                    var count = (int)command.ExecuteScalar();
+
+                    return count == 0;
                 }
             }
         }
