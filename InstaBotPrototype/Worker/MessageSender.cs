@@ -1,29 +1,26 @@
-﻿using System;
+﻿using InstaBotPrototype.Models;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.Common;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TelegramTestBot;
-using InstaBotPrototype.Models;
 
-namespace MessageSender
+namespace Worker
 {
     class MessageSender
     {
         string connString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
         string provider = ConfigurationManager.ConnectionStrings[1].ProviderName;
-        TelegramBot bot;
-        public void SendMessages()
+        TelegramBot Bot { get; set; }
+
+        public MessageSender(TelegramBot bot) => Bot = bot ?? throw new ArgumentNullException(nameof(bot));
+
+        public void Start()
         {
             var factory = DbProviderFactories.GetFactory(provider);
             var dbConnection = factory.CreateConnection();
             dbConnection.ConnectionString = connString;
 
             dbConnection.Open();
-            bot = new TelegramBot();
-            bot.Run();
 
             var getMsgCmd = factory.CreateCommand();
             getMsgCmd.Connection = dbConnection;
@@ -62,14 +59,14 @@ namespace MessageSender
 
                     setDateCommand.Parameters.AddRange(new[] { idParam });
                     setDateCommand.ExecuteNonQuery();
-                    
+
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.Message);
                     Console.WriteLine("Something went wrong during sending the message to the user with chatId:{0}", m.ChatId);
                 }
-                
+
             }
 
             dbConnection.Close();

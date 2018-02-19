@@ -1,15 +1,17 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net;
+
 namespace InstaBotPrototype.Services.Instagram
 {
     public class InstagramService : IInstagramService
     {
-        const string clientId = "937fa7572cb244e9885382f8cedba3c8";
-        const string standartToken = "5543216871.937fa75.4bf238c6f78b459bb7d92c0f5716cf85";
+        string clientId = ConfigurationManager.AppSettings["InstagramClientId"];
+        string standartToken = ConfigurationManager.AppSettings["InstagramStandartToken"];
         // Adress of the IntelliGram application
         const string redirectUri = "http://localhost:58687";
         const int postsAmount = 10;
@@ -40,7 +42,8 @@ namespace InstaBotPrototype.Services.Instagram
             UserInfo info = JsonConvert.DeserializeObject<UserInfo>(response);
             return info.User.Username;
         }
-        private string getAccessTokenUrlParam(string userId) {
+        private string getAccessTokenUrlParam(string userId)
+        {
             return "access_token=" + accessTokens[userId];
         }
         public IEnumerable<ImageData> GetRecentUserPosts(string userId)
@@ -64,7 +67,7 @@ namespace InstaBotPrototype.Services.Instagram
 
         public UsersInfo GetFollowers(string userId)
         {
-            string getFollowers = userUri + userId + "/follows?"+ getAccessTokenUrlParam(userId);
+            string getFollowers = userUri + userId + "/follows?" + getAccessTokenUrlParam(userId);
             string response = GetResponse(getFollowers);
             UsersInfo followers = JsonConvert.DeserializeObject<UsersInfo>(response);
             return followers;

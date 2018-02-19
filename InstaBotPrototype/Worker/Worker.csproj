@@ -4,16 +4,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{EB05EC53-CB89-4013-AA68-4BE996D81774}</ProjectGuid>
+    <ProjectGuid>{2717A9C5-6A42-4621-BE13-B9F2079E2ED8}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>InstagramIntegration</RootNamespace>
-    <AssemblyName>InstagramIntegration</AssemblyName>
+    <RootNamespace>Worker</RootNamespace>
+    <AssemblyName>Worker</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x86</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -32,6 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Configuration" />
@@ -68,10 +71,19 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="Telegram.Bot, Version=13.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Telegram.Bot.13.4.0\lib\net45\Telegram.Bot.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MessageSender.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="MessageCreator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Telegram\AccessModifier.cs" />
+    <Compile Include="Telegram\BotCommand.cs" />
+    <Compile Include="Telegram\TelegramBot.cs" />
+    <Compile Include="Telegram\TelegramDb.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -79,12 +91,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\InstaBotPrototype\InstaBotPrototype.csproj">
-      <Project>{11ffc5f1-984d-440c-aa2d-9306fee59d7b}</Project>
+      <Project>{11FFC5F1-984D-440C-AA2D-9306FEE59D7B}</Project>
       <Name>InstaBotPrototype</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
