@@ -87,10 +87,10 @@ namespace InstaBotPrototype.Services.DB
 
                     model.ConfigId = (int)configID.Value;
 
-                    TrimTagsTopics(model);
-
-                    AddTopicsToConfig(model.Topics, (int)model.ConfigId, connection);
-                    AddTagsToConfig(model.Tags, (int)model.ConfigId, connection);
+                    if (model.Topics != null)
+                        AddTopicsToConfig(model.Topics, (int)model.ConfigId, connection);
+                    if (model.Tags != null)
+                        AddTagsToConfig(model.Tags, (int)model.ConfigId, connection);
                 }
                 catch (Exception ex)
                 {
@@ -203,20 +203,6 @@ namespace InstaBotPrototype.Services.DB
         #endregion
 
         #region Private helper methods
-
-        private void TrimTagsTopics(ConfigurationModel model)
-        {
-            foreach (var tag in model.Tags)
-            {
-                tag.Tag = tag.Tag.Trim();
-            }
-
-            foreach (var topic in model.Topics)
-            {
-                topic.Topic = topic.Topic.Trim();
-            }
-        }
-
 
         private IEnumerable<TopicModel> GetTopicsByConfigId(int? configId, SqlConnection connection)
         {
@@ -418,10 +404,11 @@ namespace InstaBotPrototype.Services.DB
         {
             foreach (var tag in tags)
             {
-                var tagId = GetTagId(tag.Tag, connection);
+                var current = tag.Tag.Trim();
+                var tagId = GetTagId(current, connection);
                 if (!tagId.HasValue)
                 {
-                    tagId = AddTag(tag.Tag, connection);
+                    tagId = AddTag(current, connection);
                 }
                 AssignConfigTag(tagId.Value, configId, connection);
             }
@@ -431,10 +418,11 @@ namespace InstaBotPrototype.Services.DB
         {
             foreach (var topic in topics)
             {
-                var topicId = GetTagId(topic.Topic, connection);
+                var current = topic.Topic.Trim();
+                var topicId = GetTopicId(current, connection);
                 if (!topicId.HasValue)
                 {
-                    topicId = AddTopic(topic.Topic, connection);
+                    topicId = AddTopic(current, connection);
                 }
                 AssignConfigTopic(topicId.Value, configId, connection);
             }
