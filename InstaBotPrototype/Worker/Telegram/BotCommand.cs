@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace TelegramTestBot
+namespace Worker
 {
     class BotCommand
     {

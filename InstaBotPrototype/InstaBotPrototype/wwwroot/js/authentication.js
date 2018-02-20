@@ -15,11 +15,20 @@ $("#closeSignUp").click(function () {
 
 var $loginForm = $("#modalLogin");
 $loginForm.submit(function (event) {
-    clickHandler(event, "#loginError", $loginForm);
+    event.preventDefault();
+    clickHandler("#loginError", $loginForm);
 });
 var $signUpForm = $("#modalSignup");
 $signUpForm.submit(function (event) {
-    clickHandler(event, "#signUpError", $signUpForm);
+    event.preventDefault();
+    let errorDiv = "#signUpError";
+    if ($("#password").val() === $("#confirm").val()) {
+        clickHandler(errorDiv, $signUpForm);
+    }
+    else {
+        $(errorDiv).text("Passwords are not matching");
+    }
+    
 });
 $("#logOut").click(function (e) {
     e.preventDefault();
@@ -29,8 +38,7 @@ $("#logOut").click(function (e) {
     $("#configPage").hide();
     $("#authPage").show();
 });
-function clickHandler(event, errorDiv, $form) {
-    event.preventDefault();
+function clickHandler(errorDiv, $form) {
     $.ajax({
         type: $form.attr('method'),
         url: $form.attr('action'),

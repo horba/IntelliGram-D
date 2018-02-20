@@ -1,15 +1,15 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using System.Web.Configuration;
 
 namespace InstaBotPrototype.Services.AI
 {
     public class MicrosoftImageRecognizer : ImageRecognizer
     {
-        string subscriptionKey = "861b894f16b942fd83adacbe78f563d1";
+        string subscriptionKey = ConfigurationManager.AppSettings["MicrosoftImageRecognizerSubscriptionKey"];
         string uriBase = @"https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/analyze";
 
         public override async Task<IEnumerable<string>> RecognizeTopicAsync(byte[] imageBytes)

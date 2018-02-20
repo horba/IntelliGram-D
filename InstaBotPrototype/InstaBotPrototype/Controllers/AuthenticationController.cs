@@ -9,6 +9,7 @@ namespace InstaBotPrototype.Controllers
     public class AuthenticationController : Controller
     {
         private readonly IAuthenticationService _authenticationService;
+
         public AuthenticationController(IAuthenticationService authenticationService)
         {
             _authenticationService = authenticationService;

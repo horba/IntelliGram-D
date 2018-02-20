@@ -8,5 +8,16 @@
     <Setting Name="MicrosoftUriBase" Type="System.String" Scope="Application">
       <Value Profile="(Default)">https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/analyze</Value>
     </Setting>
+    <Setting Name="InstagramClientId" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">937fa7572cb244e9885382f8cedba3c8</Value>
+    </Setting>
+    <Setting Name="InstagramStandartToken" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">5543216871.937fa75.4bf238c6f78b459bb7d92c0f5716cf85</Value>
+    </Setting>
+    <Setting Name="MicrosoftImageRecognizerSubscriptionKey" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">861b894f16b942fd83adacbe78f563d1</Value>
+    <Setting Name="Pepper" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">tsTdk2u/MXKGprcG+cDY0zHI1B0AjsIKr8cahHlmJxM=</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
