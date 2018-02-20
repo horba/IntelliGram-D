@@ -4,36 +4,25 @@ using System;
 using System.IO;
 using log4net;
 using InstaBotPrototype.Services;
+using Microsoft.AspNetCore;
+using Microsoft.Extensions.Configuration;
 
 namespace InstaBotPrototype
 {
     public class Program
     {
-        private static readonly ILog log = Logger.GetLog<Program>();
-
         public static void Main(string[] args)
         {
-            log.Debug("Entered Main method");
-
-            var host = new WebHostBuilder()
-                .UseKestrel()
-                .UseContentRoot(Directory.GetCurrentDirectory())
-                .UseIISIntegration()
-                .UseStartup<Startup>()
-                .UseApplicationInsights()
-                .Build();
-
-            log.Debug("Trying to run host");
-
-            try
-            {
-                host.Run();
-            }
-            catch (Exception e)
-            {
-                log.Fatal("Exception in host.Run() method", e);
-                throw;
-            }
+            BuildWebHost(args).Run();
         }
+
+        public static IWebHost BuildWebHost(string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((builderContext, config) =>
+                {
+                    config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                })
+                .UseStartup<Startup>()
+                .Build();
     }
 }

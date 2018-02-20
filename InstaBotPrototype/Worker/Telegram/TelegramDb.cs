@@ -8,7 +8,6 @@ namespace Worker
     class TelegramDb
     {
         private string connectionString;
-
         public TelegramDb(string connectionStr) => connectionString = connectionStr;
 
         #region DB methods
@@ -72,9 +71,7 @@ namespace Worker
                     {
                         addCmd.Parameters.Add(new SqlParameter() { ParameterName = "@ChatId", SqlDbType = System.Data.SqlDbType.Int, Value = message.Chat.Id });
                         addCmd.Parameters.Add(new SqlParameter() { ParameterName = "@FirstName", SqlDbType = System.Data.SqlDbType.NVarChar, Value = message.Chat.FirstName });
-                        // Last name can be null
                         addCmd.Parameters.Add(new SqlParameter() { ParameterName = "@LastName", SqlDbType = System.Data.SqlDbType.NVarChar, Value = (object)message.Chat.LastName ?? DBNull.Value });
-                        // By default it sets to null
                         addCmd.Parameters.Add(new SqlParameter() { ParameterName = "@UserId", SqlDbType = System.Data.SqlDbType.Int, Value = DBNull.Value });
                         await addCmd.ExecuteNonQueryAsync();
                         return true;

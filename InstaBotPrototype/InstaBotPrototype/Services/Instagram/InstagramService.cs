@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
+using InstaBotPrototype;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -10,8 +10,8 @@ namespace InstaBotPrototype.Services.Instagram
 {
     public class InstagramService : IInstagramService
     {
-        string clientId = ConfigurationManager.AppSettings["InstagramClientId"];
-        string standartToken = ConfigurationManager.AppSettings["InstagramStandartToken"];
+        string clientId = AppSettingsProvider.Config["clientId"];
+        string standartToken = AppSettingsProvider.Config["standartToken"];
         // Adress of the IntelliGram application
         const string redirectUri = "http://localhost:58687";
         const int postsAmount = 10;

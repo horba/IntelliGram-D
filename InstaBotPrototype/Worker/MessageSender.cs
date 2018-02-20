@@ -1,28 +1,27 @@
-﻿using InstaBotPrototype.Models;
+﻿using InstaBotPrototype;
+using InstaBotPrototype.Models;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
-using System.Data.Common;
+using System.Data.SqlClient;
 
 namespace Worker
 {
     class MessageSender
     {
-        string connString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
-        string provider = ConfigurationManager.ConnectionStrings[1].ProviderName;
+        string connString = AppSettingsProvider.Config["connectionString"];
         TelegramBot Bot { get; set; }
 
         public MessageSender(TelegramBot bot) => Bot = bot ?? throw new ArgumentNullException(nameof(bot));
 
         public void Start()
         {
-            var factory = DbProviderFactories.GetFactory(provider);
-            var dbConnection = factory.CreateConnection();
+
+            var dbConnection = new SqlConnection();
             dbConnection.ConnectionString = connString;
 
             dbConnection.Open();
 
-            var getMsgCmd = factory.CreateCommand();
+            var getMsgCmd = new SqlCommand();
             getMsgCmd.Connection = dbConnection;
             getMsgCmd.CommandText = "SELECT * FROM Messages WHERE Send IS NULL ORDER BY Timestamp;";
             var reader = getMsgCmd.ExecuteReader();
@@ -46,14 +45,10 @@ namespace Worker
                     TelegramBot.SendMessageAsync(m.ChatId, m.Text);
 
 
-                    var setDateCommand = factory.CreateCommand();
+                    var setDateCommand = new SqlCommand();
                     setDateCommand.Connection = dbConnection;
                     setDateCommand.CommandText = "UPDATE Messages SET Send = GETDATE() WHERE Send IS NULL AND Id = @Id;";
-
-                    //var chatIdParam = factory.CreateParameter();
-                    //chatIdParam.ParameterName = "@ChatId";
-                    //chatIdParam.Value = chatId;
-                    var idParam = factory.CreateParameter();
+                    var idParam = new SqlParameter();
                     idParam.ParameterName = "@Id";
                     idParam.Value = m.Id;
 

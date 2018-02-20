@@ -1,10 +1,11 @@
-﻿using InstaBotPrototype.Models;
+﻿using InstaBotPrototype;
+using InstaBotPrototype.Models;
 using InstaBotPrototype.Services.AI;
 using InstaBotPrototype.Services.Instagram;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data.Common;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Net.Http;
 
@@ -14,23 +15,21 @@ namespace Worker
     {
         IInstagramService instagramService = new InstagramService();
         IRecognizer recognizer = new MicrosoftImageRecognizer();
-        string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
-        DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
-
-        IEnumerable<string> GetUserTopics(int userId)
+        string connectionString = AppSettingsProvider.Config["connectionString"];
+        private IEnumerable<string> GetUserTopics(int userId)
         {
             var topics = new List<string>();
-            using (var DbConnection = factory.CreateConnection())
+            using (var DbConnection = new SqlConnection())
             {
                 DbConnection.ConnectionString = connectionString;
                 DbConnection.Open();
-                var selectTopics = factory.CreateCommand();
+                var selectTopics = new SqlCommand();
                 selectTopics.CommandText = @"SELECT Topic FROM dbo.Configuration 
                                             JOIN dbo.ConfigTopic ON dbo.Configuration.ConfigID = dbo.ConfigTopic.ConfigID 
                                             JOIN Topic ON dbo.Topic.TopicID = dbo.ConfigTopic.TopicID
                                             WHERE dbo.Configuration.UserId = @id";
                 selectTopics.Connection = DbConnection;
-                var parameter = factory.CreateParameter();
+                var parameter = new SqlParameter();
                 parameter.ParameterName = "@id";
                 parameter.Value = userId;
                 parameter.DbType = System.Data.DbType.Int32;
@@ -45,20 +44,20 @@ namespace Worker
             return topics;
         }
 
-        IEnumerable<string> GetUserTags(int userId)
+        private IEnumerable<string> GetUserTags(int userId)
         {
             var tags = new List<string>();
-            using (var DbConnection = factory.CreateConnection())
+            using (var DbConnection = new SqlConnection())
             {
                 DbConnection.ConnectionString = connectionString;
                 DbConnection.Open();
-                var selectTags = factory.CreateCommand();
+                var selectTags = new SqlCommand();
                 selectTags.CommandText = @"SELECT Tag FROM dbo.Configuration 
                                            JOIN dbo.ConfigTag ON dbo.Configuration.ConfigID = dbo.ConfigTag.ConfigID 
                                            JOIN Tag ON dbo.Tag.TagID = dbo.ConfigTag.TagID
                                            WHERE dbo.Configuration.UserId = @id";
                 selectTags.Connection = DbConnection;
-                var parameter = factory.CreateParameter();
+                var parameter = new SqlParameter();
                 parameter.ParameterName = "@id";
                 parameter.Value = userId;
                 parameter.DbType = System.Data.DbType.Int32;
@@ -73,19 +72,19 @@ namespace Worker
             return tags;
         }
 
-        long? GetChatIdByUserId(int id)
+        private long? GetChatIdByUserId(int id)
         {
             long? userId = null;
-            using (var DbConnection = factory.CreateConnection())
+            using (var DbConnection = new SqlConnection())
             {
                 DbConnection.ConnectionString = connectionString;
                 DbConnection.Open();
-                var selectId = factory.CreateCommand();
+                var selectId = new SqlCommand();
                 selectId.CommandText = @"SELECT [ChatId]
-  FROM[dbo].[TelegramIntegration]
-  WHERE[dbo].[TelegramIntegration].[UserId] = @id; ";
+                                          FROM[dbo].[TelegramIntegration]
+                                          WHERE[dbo].[TelegramIntegration].[UserId] = @id;";
                 selectId.Connection = DbConnection;
-                var parameter = factory.CreateParameter();
+                var parameter = new SqlParameter();
                 parameter.ParameterName = "@id";
                 parameter.Value = id;
                 parameter.DbType = System.Data.DbType.Int32;
@@ -101,21 +100,21 @@ namespace Worker
             return userId;
         }
 
-        void InsertMessage(Message msg)
+        private void InsertMessage(Message msg)
         {
-            using (var DbConnection = factory.CreateConnection())
+            using (var DbConnection = new SqlConnection())
             {
                 DbConnection.ConnectionString = connectionString;
                 DbConnection.Open();
-                var insertCmd = factory.CreateCommand();
+                var insertCmd = new SqlCommand();
                 insertCmd.Connection = DbConnection;
 
 
-                var chatIdParam = factory.CreateParameter();
+                var chatIdParam = new SqlParameter();
                 chatIdParam.ParameterName = "@ChatId";
                 chatIdParam.Value = msg.ChatId;
 
-                var msgParam = factory.CreateParameter();
+                var msgParam = new SqlParameter();
                 msgParam.ParameterName = "@Message";
                 msgParam.Value = msg.Text;
 
@@ -126,17 +125,17 @@ namespace Worker
             }
         }
 
-        int? GetUserIdByInstagram(string nickname)
+        private int? GetUserIdByInstagram(string nickname)
         {
             int? userId = null;
-            using (var DbConnection = factory.CreateConnection())
+            using (var DbConnection = new SqlConnection())
             {
                 DbConnection.ConnectionString = connectionString;
                 DbConnection.Open();
-                var selectId = factory.CreateCommand();
+                var selectId = new SqlCommand();
                 selectId.CommandText = "SELECT UserId FROM dbo.InstagramIntegration WHERE Nickname = @nickname";
                 selectId.Connection = DbConnection;
-                var parameter = factory.CreateParameter();
+                var parameter = new SqlParameter();
                 parameter.ParameterName = "@nickname";
                 parameter.Value = nickname;
                 selectId.Parameters.Add(parameter);
@@ -151,14 +150,14 @@ namespace Worker
             return userId;
         }
 
-        IEnumerable<string> GetAllInstagramUsers()
+        private IEnumerable<string> GetAllInstagramUsers()
         {
             var nicknames = new List<string>();
-            using (var DbConnection = factory.CreateConnection())
+            using (var DbConnection = new SqlConnection())
             {
                 DbConnection.ConnectionString = connectionString;
                 DbConnection.Open();
-                var selectNicknames = factory.CreateCommand();
+                var selectNicknames = new SqlCommand();
                 selectNicknames.CommandText = "SELECT Nickname FROM dbo.InstagramIntegration";
                 selectNicknames.Connection = DbConnection;
                 var nameReader = selectNicknames.ExecuteReader();
@@ -170,7 +169,25 @@ namespace Worker
             }
             return nicknames;
         }
-
+        private bool ImageIsNew(long? chatID, string url)
+        {
+            using (var DbConnection = new SqlConnection())
+            {
+                DbConnection.ConnectionString = connectionString;
+                DbConnection.Open();
+                var command = new SqlCommand();
+                command.Connection = DbConnection;
+                command.CommandText = "select count(ChatId) from dbo.Messages where ChatId = @chatId and Message = @message";
+                var p1 = new SqlParameter();
+                p1.ParameterName = "@chatId";
+                p1.Value = chatID.Value;
+                var p2 = new SqlParameter();
+                p2.ParameterName = "@message";
+                p2.Value = url;
+                command.Parameters.AddRange(new[] { p1, p2 });
+                return Convert.ToInt32(command.ExecuteScalar()) == 0;
+            }
+        }
         public void Start()
         {
             var client = new HttpClient();
@@ -204,42 +221,12 @@ namespace Worker
                         }
                         Console.WriteLine();
                         ++counter;
-                        if (chatID.HasValue)
+                        if (chatID.HasValue && ImageIsNew(chatID.Value, post.Images.StandartResolution.Url))
                         {
-                            var message = new Message(chatID.Value, post.Images.StandartResolution.Url);
-
-                            if (IsNew(message))
-                            {
-                                InsertMessage(message);
-                            }
+                            var msg = new Message(chatID.Value, post.Images.StandartResolution.Url);
+                            InsertMessage(msg);
                         }
                     }
-                }
-            }
-
-            bool IsNew(Message message)
-            {
-                var connection = factory.CreateConnection();
-                connection.ConnectionString = connectionString;
-
-                using (var command = factory.CreateCommand())
-                {
-                    command.Connection = connection;
-                    command.CommandText = "select count(ChatId) from dbo.Messages where ChatId = @chatId and Message = @message";
-
-                    var p1 = factory.CreateParameter();
-                    p1.ParameterName = "@chatId";
-                    p1.Value = message.ChatId;
-
-
-                    var p2 = factory.CreateParameter();
-                    p2.ParameterName = "@message";
-                    p2.Value = message.Text;
-
-                    command.Parameters.AddRange(new[] { p1, p2 });
-                    var count = (int)command.ExecuteScalar();
-
-                    return count == 0;
                 }
             }
         }
