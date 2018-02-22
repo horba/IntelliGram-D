@@ -2,26 +2,26 @@
 using InstaBotPrototype.Models;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using System.Data.Common;
 
 namespace Worker
 {
     class MessageSender
     {
-        string connString = AppSettingsProvider.Config["connectionString"];
-        TelegramBot Bot { get; set; }
-
+        private string connString = AppSettingsProvider.Config["connectionString"];
+        public TelegramBot Bot { get; private set; }
+        private DbProviderFactory factory = DbProviderFactories.GetFactoryByProvider(AppSettingsProvider.Config["dataProvider"]);
         public MessageSender(TelegramBot bot) => Bot = bot ?? throw new ArgumentNullException(nameof(bot));
 
         public void Start()
         {
 
-            var dbConnection = new SqlConnection();
+            var dbConnection = factory.CreateConnection();
             dbConnection.ConnectionString = connString;
 
             dbConnection.Open();
 
-            var getMsgCmd = new SqlCommand();
+            var getMsgCmd = factory.CreateCommand();
             getMsgCmd.Connection = dbConnection;
             getMsgCmd.CommandText = "SELECT * FROM Messages WHERE Send IS NULL ORDER BY Timestamp;";
             var reader = getMsgCmd.ExecuteReader();
@@ -45,10 +45,10 @@ namespace Worker
                     TelegramBot.SendMessageAsync(m.ChatId, m.Text);
 
 
-                    var setDateCommand = new SqlCommand();
+                    var setDateCommand = factory.CreateCommand();
                     setDateCommand.Connection = dbConnection;
                     setDateCommand.CommandText = "UPDATE Messages SET Send = GETDATE() WHERE Send IS NULL AND Id = @Id;";
-                    var idParam = new SqlParameter();
+                    var idParam = factory.CreateParameter();
                     idParam.ParameterName = "@Id";
                     idParam.Value = m.Id;
 

@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-
-using System.Data.SqlClient;
+using System.Data.Common;
 
 namespace InstaBotPrototype.Services.Autocompletion
 {
     public class AutocompletionService : IAutocompletionService
     {
         private static string connectionString = AppSettingsProvider.Config["connectionString"];
-
+        private DbProviderFactory factory = DbProviderFactories.GetFactoryByProvider(AppSettingsProvider.Config["dataProvider"]);
         private const int tagLimit = 3;
         private const int topicLimit = 3;
 
@@ -18,22 +17,22 @@ namespace InstaBotPrototype.Services.Autocompletion
             {
                 var tags = new List<string>();
 
-                using (var dbConnection = new SqlConnection())
+                using (var dbConnection = factory.CreateConnection())
                 {
                     dbConnection.ConnectionString = connectionString;
                     dbConnection.Open();
 
-                    var selectTags = new SqlCommand();
+                    var selectTags = factory.CreateCommand();
                     selectTags.CommandText = "SELECT TOP (@TagCount) Tag FROM dbo.Tag WHERE (LOWER(Tag) LIKE CONCAT(@TagToFind, '%'));";
                     selectTags.Connection = dbConnection;
 
-                    var tagParam = new SqlParameter();
+                    var tagParam = factory.CreateParameter();
                     tagParam.ParameterName = "@TagToFind";
                     tagParam.Value = tag.ToLower();
                     tagParam.DbType = System.Data.DbType.String;
                     selectTags.Parameters.Add(tagParam);
 
-                    var tagLimitParam = new SqlParameter();
+                    var tagLimitParam = factory.CreateParameter();
                     tagLimitParam.ParameterName = "@TagCount";
                     tagLimitParam.Value = tagLimit;
                     tagLimitParam.DbType = System.Data.DbType.Int32;
@@ -59,22 +58,22 @@ namespace InstaBotPrototype.Services.Autocompletion
             {
                 var topics = new List<string>();
 
-                using (var dbConnection = new SqlConnection())
+                using (var dbConnection = factory.CreateConnection())
                 {
                     dbConnection.ConnectionString = connectionString;
                     dbConnection.Open();
 
-                    var selectTopics = new SqlCommand();
+                    var selectTopics = factory.CreateCommand();
                     selectTopics.CommandText = "SELECT TOP (@TopicCount) Topic FROM dbo.Topic WHERE (LOWER(Topic) LIKE CONCAT(@TopicToFind, '%'));";
                     selectTopics.Connection = dbConnection;
 
-                    var topicParam = new SqlParameter();
+                    var topicParam = factory.CreateParameter();
                     topicParam.ParameterName = "@TopicToFind";
                     topicParam.Value = topic.ToLower();
                     topicParam.DbType = System.Data.DbType.String;
                     selectTopics.Parameters.Add(topicParam);
 
-                    var topicLimitParam = new SqlParameter();
+                    var topicLimitParam = factory.CreateParameter();
                     topicLimitParam.ParameterName = "@TopicCount";
                     topicLimitParam.Value = topicLimit;
                     topicLimitParam.DbType = System.Data.DbType.Int32;

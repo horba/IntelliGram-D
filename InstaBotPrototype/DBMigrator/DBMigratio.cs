@@ -74,6 +74,7 @@ namespace DBMigrator
         private void Run(DbCommand command)
         {
             command.Connection = connection;
-            command.ExecuteNonQuery(); }
+            command.ExecuteNonQuery();
+        }
     }
 }

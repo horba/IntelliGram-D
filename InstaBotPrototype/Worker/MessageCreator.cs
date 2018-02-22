@@ -5,7 +5,6 @@ using InstaBotPrototype.Services.Instagram;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Net.Http;
 
@@ -16,20 +15,21 @@ namespace Worker
         IInstagramService instagramService = new InstagramService();
         IRecognizer recognizer = new MicrosoftImageRecognizer();
         string connectionString = AppSettingsProvider.Config["connectionString"];
+        private DbProviderFactory factory = DbProviderFactories.GetFactoryByProvider(AppSettingsProvider.Config["dataProvider"]);
         private IEnumerable<string> GetUserTopics(int userId)
         {
             var topics = new List<string>();
-            using (var DbConnection = new SqlConnection())
+            using (var DbConnection = factory.CreateConnection())
             {
                 DbConnection.ConnectionString = connectionString;
                 DbConnection.Open();
-                var selectTopics = new SqlCommand();
+                var selectTopics = factory.CreateCommand();
                 selectTopics.CommandText = @"SELECT Topic FROM dbo.Configuration 
                                             JOIN dbo.ConfigTopic ON dbo.Configuration.ConfigID = dbo.ConfigTopic.ConfigID 
                                             JOIN Topic ON dbo.Topic.TopicID = dbo.ConfigTopic.TopicID
                                             WHERE dbo.Configuration.UserId = @id";
                 selectTopics.Connection = DbConnection;
-                var parameter = new SqlParameter();
+                var parameter = factory.CreateParameter();
                 parameter.ParameterName = "@id";
                 parameter.Value = userId;
                 parameter.DbType = System.Data.DbType.Int32;
@@ -47,17 +47,17 @@ namespace Worker
         private IEnumerable<string> GetUserTags(int userId)
         {
             var tags = new List<string>();
-            using (var DbConnection = new SqlConnection())
+            using (var DbConnection = factory.CreateConnection())
             {
                 DbConnection.ConnectionString = connectionString;
                 DbConnection.Open();
-                var selectTags = new SqlCommand();
+                var selectTags = factory.CreateCommand();
                 selectTags.CommandText = @"SELECT Tag FROM dbo.Configuration 
                                            JOIN dbo.ConfigTag ON dbo.Configuration.ConfigID = dbo.ConfigTag.ConfigID 
                                            JOIN Tag ON dbo.Tag.TagID = dbo.ConfigTag.TagID
                                            WHERE dbo.Configuration.UserId = @id";
                 selectTags.Connection = DbConnection;
-                var parameter = new SqlParameter();
+                var parameter = factory.CreateParameter();
                 parameter.ParameterName = "@id";
                 parameter.Value = userId;
                 parameter.DbType = System.Data.DbType.Int32;
@@ -75,16 +75,16 @@ namespace Worker
         private long? GetChatIdByUserId(int id)
         {
             long? userId = null;
-            using (var DbConnection = new SqlConnection())
+            using (var DbConnection = factory.CreateConnection())
             {
                 DbConnection.ConnectionString = connectionString;
                 DbConnection.Open();
-                var selectId = new SqlCommand();
+                var selectId = factory.CreateCommand();
                 selectId.CommandText = @"SELECT [ChatId]
                                           FROM[dbo].[TelegramIntegration]
                                           WHERE[dbo].[TelegramIntegration].[UserId] = @id;";
                 selectId.Connection = DbConnection;
-                var parameter = new SqlParameter();
+                var parameter = factory.CreateParameter();
                 parameter.ParameterName = "@id";
                 parameter.Value = id;
                 parameter.DbType = System.Data.DbType.Int32;
@@ -102,19 +102,19 @@ namespace Worker
 
         private void InsertMessage(Message msg)
         {
-            using (var DbConnection = new SqlConnection())
+            using (var DbConnection = factory.CreateConnection())
             {
                 DbConnection.ConnectionString = connectionString;
                 DbConnection.Open();
-                var insertCmd = new SqlCommand();
+                var insertCmd = factory.CreateCommand();
                 insertCmd.Connection = DbConnection;
 
 
-                var chatIdParam = new SqlParameter();
+                var chatIdParam = factory.CreateParameter();
                 chatIdParam.ParameterName = "@ChatId";
                 chatIdParam.Value = msg.ChatId;
 
-                var msgParam = new SqlParameter();
+                var msgParam = factory.CreateParameter();
                 msgParam.ParameterName = "@Message";
                 msgParam.Value = msg.Text;
 
@@ -128,14 +128,14 @@ namespace Worker
         private int? GetUserIdByInstagram(string nickname)
         {
             int? userId = null;
-            using (var DbConnection = new SqlConnection())
+            using (var DbConnection = factory.CreateConnection())
             {
                 DbConnection.ConnectionString = connectionString;
                 DbConnection.Open();
-                var selectId = new SqlCommand();
+                var selectId = factory.CreateCommand();
                 selectId.CommandText = "SELECT UserId FROM dbo.InstagramIntegration WHERE Nickname = @nickname";
                 selectId.Connection = DbConnection;
-                var parameter = new SqlParameter();
+                var parameter = factory.CreateParameter();
                 parameter.ParameterName = "@nickname";
                 parameter.Value = nickname;
                 selectId.Parameters.Add(parameter);
@@ -153,11 +153,11 @@ namespace Worker
         private IEnumerable<string> GetAllInstagramUsers()
         {
             var nicknames = new List<string>();
-            using (var DbConnection = new SqlConnection())
+            using (var DbConnection = factory.CreateConnection())
             {
                 DbConnection.ConnectionString = connectionString;
                 DbConnection.Open();
-                var selectNicknames = new SqlCommand();
+                var selectNicknames = factory.CreateCommand();
                 selectNicknames.CommandText = "SELECT Nickname FROM dbo.InstagramIntegration";
                 selectNicknames.Connection = DbConnection;
                 var nameReader = selectNicknames.ExecuteReader();
@@ -171,17 +171,17 @@ namespace Worker
         }
         private bool ImageIsNew(long? chatID, string url)
         {
-            using (var DbConnection = new SqlConnection())
+            using (var DbConnection = factory.CreateConnection())
             {
                 DbConnection.ConnectionString = connectionString;
                 DbConnection.Open();
-                var command = new SqlCommand();
+                var command = factory.CreateCommand();
                 command.Connection = DbConnection;
                 command.CommandText = "select count(ChatId) from dbo.Messages where ChatId = @chatId and Message = @message";
-                var p1 = new SqlParameter();
+                var p1 = factory.CreateParameter();
                 p1.ParameterName = "@chatId";
                 p1.Value = chatID.Value;
-                var p2 = new SqlParameter();
+                var p2 = factory.CreateParameter();
                 p2.ParameterName = "@message";
                 p2.Value = url;
                 command.Parameters.AddRange(new[] { p1, p2 });

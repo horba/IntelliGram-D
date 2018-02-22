@@ -1,9 +1,8 @@
 using InstaBotPrototype.Models;
-using Microsoft.Extensions.Configuration;
 using Scrypt;
 using System;
-using System.Data.SqlClient;
-using System.IO;
+using System.Data.Common;
+
 
 namespace InstaBotPrototype.Services
 {
@@ -11,16 +10,16 @@ namespace InstaBotPrototype.Services
     {
         private string connectionString = AppSettingsProvider.Config["connectionString"];
         private readonly ScryptEncoder encoder = new ScryptEncoder();
-        private readonly string pepper = null;
-
+        private readonly string pepper = AppSettingsProvider.Config["pepper"];
+        private DbProviderFactory factory = DbProviderFactories.GetFactoryByProvider(AppSettingsProvider.Config["dataProvider"]);
         public string Login(LoginModel model)
         {
             Guid? sessionID = null;
-            using (var dbConnection = new SqlConnection())
+            using (var dbConnection = factory.CreateConnection())
             {
                 dbConnection.ConnectionString = connectionString;
                 dbConnection.Open();
-                var selectCmd = new SqlCommand();
+                var selectCmd = factory.CreateCommand();
                 selectCmd.Connection = dbConnection;
                 selectCmd.CommandText = $"SELECT Id,Password FROM dbo.Users WHERE Login = @login";
                 var login = CreateParameter("@login", model.Login);
@@ -39,7 +38,7 @@ namespace InstaBotPrototype.Services
                     }
 
                     sessionID = Guid.NewGuid();
-                    var insertSession = new SqlCommand();
+                    var insertSession = factory.CreateCommand();
                     insertSession.Connection = dbConnection;
                     insertSession.CommandText = $"INSERT INTO dbo.Sessions (UserId,SessionId) VALUES (@id,@sessionID)";
                     insertSession.Parameters.Add(CreateParameter("@id", id));
@@ -52,11 +51,11 @@ namespace InstaBotPrototype.Services
 
         public string Register(LoginModel model)
         {
-            var dbConnection = new SqlConnection();
+            var dbConnection = factory.CreateConnection();
             dbConnection.ConnectionString = connectionString;
             dbConnection.Open();
 
-            var checkUserExists = new SqlCommand();
+            var checkUserExists = factory.CreateCommand();
             checkUserExists.Connection = dbConnection;
             checkUserExists.CommandText = $"SELECT COUNT(Login) FROM dbo.Users WHERE Login = @login";
             var login = CreateParameter("@login", model.Login);
@@ -64,7 +63,7 @@ namespace InstaBotPrototype.Services
             int usersCount = Convert.ToInt32(checkUserExists.ExecuteScalar());
             if (usersCount == 0)
             {
-                var insert = new SqlCommand();
+                var insert = factory.CreateCommand();
                 insert.Connection = dbConnection;
                 insert.CommandText = $"INSERT INTO dbo.Users (Login, Email, Password, RegisterDate) VALUES (@login, @email, @password, SYSDATETIME())";
 
@@ -84,13 +83,11 @@ namespace InstaBotPrototype.Services
             }
         }
 
-        private SqlParameter CreateParameter(string name, object value)
+        private DbParameter CreateParameter(string name, object value)
         {
-            var parameter = new SqlParameter
-            {
-                ParameterName = name,
-                Value = value
-            };
+            var parameter = factory.CreateParameter();
+            parameter.ParameterName = name;
+            parameter.Value = value;
             return parameter;
         }
     }

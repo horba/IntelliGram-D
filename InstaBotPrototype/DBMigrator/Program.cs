@@ -1,5 +1,5 @@
-﻿using System;
-using System.Configuration;
+﻿using InstaBotPrototype;
+using System;
 using System.Data.Common;
 using System.Linq;
 using System.Reflection;
@@ -10,18 +10,12 @@ namespace DBMigrator
     {
         private static void Main()
         {
-            string connString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
-            string provider = ConfigurationManager.ConnectionStrings[1].ProviderName;
-
-            var factory = DbProviderFactories.GetFactory(provider);
-
+            string connectionString = AppSettingsProvider.Config["connectionString"];
+            DbProviderFactory factory = DbProviderFactories.GetFactoryByProvider(AppSettingsProvider.Config["dataProvider"]);
             var dbConnection = factory.CreateConnection();
-            dbConnection.ConnectionString = connString;
-            
+            dbConnection.ConnectionString = connectionString;
             dbConnection.Open();
-
             var migrations = (from type in Assembly.GetCallingAssembly().GetTypes() where type.IsSubclassOf(typeof(DBMigration)) orderby type.GetCustomAttribute<IndexerAttribute>().Id select Activator.CreateInstance(type, new object[] { factory, dbConnection }) as DBMigration).ToList();
-
             foreach (var migration in migrations)
             {
                 long id = migration.GetType().GetCustomAttribute<IndexerAttribute>().Id;
