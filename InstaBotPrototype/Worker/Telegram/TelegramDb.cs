@@ -12,7 +12,39 @@ namespace Worker
         private string connectionString;
         public TelegramDb(string connectionStr) => connectionString = connectionStr;
         private DbProviderFactory factory = DbProviderFactories.GetFactoryByProvider(AppSettingsProvider.Config["dataProvider"]);
+
         #region DB methods
+
+        public async Task SetNotificationAsync(long chatId, bool muted = true)
+        {
+            using (var connection = CreateConnection())
+            {
+                connection.ConnectionString = connectionString;
+                await connection.OpenAsync();
+                string updateQuery = "UPDATE dbo.TelegramIntegration SET Muted = @MuteOption WHERE ChatId = @ChatId;";
+                var muteCmd = CreateCommand(updateQuery, connection);
+                muteCmd.Parameters.Add(CreateParameter("@ChatId", chatId, DbType.Int64));
+                muteCmd.Parameters.Add(CreateParameter("@MuteOption", muted, DbType.Boolean));
+                muteCmd.Connection = connection;
+                await muteCmd.ExecuteNonQueryAsync();
+            }
+        }
+
+        public async Task<bool> IsMutedAsync(long chatId)
+        {
+            using (var dbConnection = CreateConnection())
+            {
+                dbConnection.ConnectionString = connectionString;
+                dbConnection.Open();
+
+                string muteQuery = "SELECT Muted FROM dbo.TelegramIntegration WHERE ChatId = @ChatId;";
+                var selectMute = CreateCommand(muteQuery, dbConnection);
+                selectMute.Parameters.Add(CreateParameter("@ChatId", chatId, DbType.Int64));
+                selectMute.Connection = dbConnection;
+
+                return (bool)await selectMute.ExecuteScalarAsync();
+            }
+        }
 
         public async Task<string> GetUsersAsync()
         {
@@ -73,8 +105,7 @@ namespace Worker
                     {
                         addCmd.Parameters.Add(CreateParameter("@ChatId", message.Chat.Id, DbType.Int32));
                         addCmd.Parameters.Add(CreateParameter("@FirstName", message.Chat.FirstName));
-                        if (message.Chat.LastName != null)
-                             addCmd.Parameters.Add(CreateParameter("@LastName", message.Chat.LastName));
+                        addCmd.Parameters.Add(CreateParameter("@LastName", (object)message.Chat.LastName ?? DBNull.Value));
                         await addCmd.ExecuteNonQueryAsync();
                         return true;
                     }
@@ -157,19 +188,26 @@ namespace Worker
                 #endregion
             }
         }
+
+        #endregion
+
+        #region Factory
+
         private DbConnection CreateConnection()
         {
             var command = factory.CreateConnection();
             command.ConnectionString = connectionString;
             return command;
         }
-        private DbCommand CreateCommand(string query,DbConnection connection) {
+
+        private DbCommand CreateCommand(string query, DbConnection connection) {
             var command = factory.CreateCommand();
             command.CommandText = query;
             command.Connection = connection;
             return command;
         }
-        private DbParameter CreateParameter(string name, object value,DbType type = DbType.String)
+
+        private DbParameter CreateParameter(string name, object value, DbType type = DbType.String)
         {
             var param = factory.CreateParameter();
             param.ParameterName = name;
@@ -177,6 +215,8 @@ namespace Worker
             param.DbType = type;
             return param;
         }
+
         #endregion
+
     }
 }
