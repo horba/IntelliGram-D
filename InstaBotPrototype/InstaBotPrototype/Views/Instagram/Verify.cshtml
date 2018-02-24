@@ -1,10 +1,10 @@
-﻿<html>
+<html>
 <body>
     <script src="~/js/jquery-3.2.1.min.js"></script>
     <script>
         $.ajax('/api/Instagram', { method: 'POST', data: { token: window.location.href } })
             .then(function (response) {
-                window.location.href = "@System.Configuration.ConfigurationManager.AppSettings["Localhost"]";
+                window.location.href = "@InstaBotPrototype.AppSettingsProvider.Config["Localhost"]";
             });
 
     </script>
