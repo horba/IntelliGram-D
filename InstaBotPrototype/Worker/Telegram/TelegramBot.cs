@@ -97,8 +97,9 @@ namespace Worker
             string token = telegramDb.GetUsersToken(message.Chat.Id);
             string username = instagram.GetUsername(token);
             string userId = instagram.GetUserId(username);
+            string postId = telegramDb.GetLatestPostId(message.Chat.Id);
 
-            instagram.Like("1697398127030795565_4307857850");
+            instagram.Like(postId);
         }
 
         private static async void CommentAsync(Message message)
@@ -107,13 +108,14 @@ namespace Worker
             string token = telegramDb.GetUsersToken(message.Chat.Id);
             string username = instagram.GetUsername(token);
             string userId = instagram.GetUserId(username);
+            string postId = telegramDb.GetLatestPostId(message.Chat.Id);
 
             var args = message.Text.Split(' ');
             if (args.Length > 1)
             {
                 if (args[1].Length < COMMENT_MAX_LENGTH)
                 {
-                    instagram.Comment("1697398127030795565_4307857850", args[1]);
+                    instagram.Comment(postId, args[1]);
                 }
                 else
                 {
@@ -122,7 +124,7 @@ namespace Worker
             }
             else
             {
-                instagram.Comment("1697398127030795565_4307857850");
+                instagram.Comment(postId);
             }           
         }
 
