@@ -63,7 +63,7 @@ namespace InstaBotPrototype.Services.Instagram
                 {
                     reader.Read();
                     accessToken = reader.GetString(0);
-                    return "access_token=" + accessToken;
+                    return accessToken;
                 }
                 else
                 {
@@ -77,7 +77,7 @@ namespace InstaBotPrototype.Services.Instagram
         }
         public IEnumerable<ImageData> GetRecentUserPosts(string userId)
         {
-            string getRecentMedia = userUri + userId + "/media/recent?" + GetAccessTokenUrlParam(currentUserId);
+            string getRecentMedia = userUri + userId + "/media/recent?access_token=" + GetAccessTokenUrlParam(currentUserId);
             string response = GetResponse(getRecentMedia);
             Post posts = JsonConvert.DeserializeObject<Post>(response);
             return posts.Images;
@@ -96,7 +96,7 @@ namespace InstaBotPrototype.Services.Instagram
 
         public UsersInfo GetFollowers(string userId)
         {
-            string getFollowers = userUri + userId + "/follows?" + GetAccessTokenUrlParam(currentUserId);
+            string getFollowers = userUri + userId + "/follows?access_token=" + GetAccessTokenUrlParam(currentUserId);
             string response = GetResponse(getFollowers);
             UsersInfo followers = JsonConvert.DeserializeObject<UsersInfo>(response);
             return followers;
