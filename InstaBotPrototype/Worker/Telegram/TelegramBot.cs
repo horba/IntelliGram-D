@@ -108,24 +108,28 @@ namespace Worker
             string token = telegramDb.GetUsersToken(message.Chat.Id);
             string username = instagram.GetUsername(token);
             string userId = instagram.GetUserId(username);
-            string postId = telegramDb.GetLatestPostId(message.Chat.Id);
+            string postId = "";
 
-            var args = message.Text.Split(' ');
-            if (args.Length > 1)
+            try
             {
-                if (args[1].Length < COMMENT_MAX_LENGTH)
-                {
-                    instagram.Comment(postId, args[1]);
-                }
-                else
-                {
-                    await SendMessageAsync(message.Chat.Id, $"Comment must be shorter than { COMMENT_MAX_LENGTH } symbols");
-                }
+                postId = telegramDb.GetLatestPostId(message.Chat.Id);
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+            // Remove '/comment' from the text  
+            var comment = message.Text.Remove(0, 8);
+
+            if (comment.Length < COMMENT_MAX_LENGTH)
+            {
+                instagram.Comment(postId, comment);
             }
             else
             {
-                instagram.Comment(postId);
-            }           
+                await SendMessageAsync(message.Chat.Id, $"Comment must be shorter than { COMMENT_MAX_LENGTH } symbols");
+            }       
         }
 
         private static async void MuteNotificationsAsync(Message message)
