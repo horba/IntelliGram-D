@@ -5,10 +5,10 @@ using System.Text;
 
 namespace DBMigrator.Migrations
 {
-    [Indexer(201801250348)]
-    class M201801250348_AddedPostIdColumnToMessagesTable : DBMigration
+    [Indexer(201802250348)]
+    class M201802250348_AddedPostIdColumnToMessagesTable : DBMigration
     {
-        public M201801250348_AddedPostIdColumnToMessagesTable(object factory, object connection) : base(factory as DbProviderFactory, connection as DbConnection)
+        public M201802250348_AddedPostIdColumnToMessagesTable(object factory, object connection) : base(factory as DbProviderFactory, connection as DbConnection)
         {
             ApplyCommand.CommandText =
             @"  ALTER TABLE Messages
