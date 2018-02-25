@@ -43,7 +43,7 @@ namespace InstaBotPrototype.Services.Instagram
             UserInfo info = JsonConvert.DeserializeObject<UserInfo>(response);
             return info.User.Username;
         }
-        private string getAccessTokenUrlParam(string userId)
+        private string GetAccessTokenUrlParam(string userId)
         {
             using (var connection = factory.CreateConnection())
             {
@@ -77,7 +77,7 @@ namespace InstaBotPrototype.Services.Instagram
         }
         public IEnumerable<ImageData> GetRecentUserPosts(string userId)
         {
-            string getRecentMedia = userUri + userId + "/media/recent?" + getAccessTokenUrlParam(currentUserId);
+            string getRecentMedia = userUri + userId + "/media/recent?" + GetAccessTokenUrlParam(currentUserId);
             string response = GetResponse(getRecentMedia);
             Post posts = JsonConvert.DeserializeObject<Post>(response);
             return posts.Images;
@@ -96,7 +96,7 @@ namespace InstaBotPrototype.Services.Instagram
 
         public UsersInfo GetFollowers(string userId)
         {
-            string getFollowers = userUri + userId + "/follows?" + getAccessTokenUrlParam(currentUserId);
+            string getFollowers = userUri + userId + "/follows?" + GetAccessTokenUrlParam(currentUserId);
             string response = GetResponse(getFollowers);
             UsersInfo followers = JsonConvert.DeserializeObject<UsersInfo>(response);
             return followers;
@@ -106,7 +106,7 @@ namespace InstaBotPrototype.Services.Instagram
         {
             using (var client = new HttpClient())
             {
-                var pars = new FormUrlEncodedContent(new[] { new KeyValuePair<string, string>("access_token", getAccessTokenUrlParam(currentUserId)) });
+                var pars = new FormUrlEncodedContent(new[] { new KeyValuePair<string, string>("access_token", GetAccessTokenUrlParam(currentUserId)) });
                 var resp = await client.PostAsync(mediaUri + mediaId + "/likes", pars);
                 Console.WriteLine(resp.StatusCode);
             }
@@ -117,7 +117,7 @@ namespace InstaBotPrototype.Services.Instagram
         {
             using (var client = new HttpClient())
             {
-                var pars = new FormUrlEncodedContent(new[] { new KeyValuePair<string, string>("access_token", getAccessTokenUrlParam(currentUserId)), new KeyValuePair<string, string>("text", commentText) });
+                var pars = new FormUrlEncodedContent(new[] { new KeyValuePair<string, string>("access_token", GetAccessTokenUrlParam(currentUserId)), new KeyValuePair<string, string>("text", commentText) });
                 var resp = await client.PostAsync(mediaUri + mediaId + "/comments", pars);
                 Console.WriteLine(resp.StatusCode);
             }
