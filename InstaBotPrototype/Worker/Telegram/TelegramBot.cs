@@ -1,4 +1,5 @@
 ﻿using InstaBotPrototype;
+using InstaBotPrototype.Services.Instagram;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,10 +18,13 @@ namespace Worker
         private static string telegramApiKey;
         private static readonly TelegramBotClient bot;
         private static readonly TelegramDb telegramDb;
+        private static readonly InstagramService instagram;
 
         private delegate void BotAction(Message message);
         private static readonly Dictionary<BotCommand, BotAction> botAction;
         private static readonly Dictionary<string, AccessModifier> commandDict;
+
+        private const int COMMENT_MAX_LENGTH = 300;
 
         #region Static Constructor
 
@@ -32,6 +36,7 @@ namespace Worker
                 bot = new TelegramBotClient(telegramApiKey);
 
                 telegramDb = new TelegramDb(AppSettingsProvider.Config["connectionString"]);
+                instagram = new InstagramService();
             }
             catch (Exception e)
             {
@@ -88,12 +93,37 @@ namespace Worker
 
         private static async void LikeAsync(Message message)
         {
-            await SendMessageAsync(message.Chat.Id, "implementation");
+            // Initialize current user
+            string token = telegramDb.GetUsersToken(message.Chat.Id);
+            string username = instagram.GetUsername(token);
+            string userId = instagram.GetUserId(username);
+
+            instagram.Like("1697398127030795565_4307857850");
         }
 
         private static async void CommentAsync(Message message)
         {
-            await SendMessageAsync(message.Chat.Id, "implementation");
+            // Initialize current user
+            string token = telegramDb.GetUsersToken(message.Chat.Id);
+            string username = instagram.GetUsername(token);
+            string userId = instagram.GetUserId(username);
+
+            var args = message.Text.Split(' ');
+            if (args.Length > 1)
+            {
+                if (args[1].Length < COMMENT_MAX_LENGTH)
+                {
+                    instagram.Comment("1697398127030795565_4307857850", args[1]);
+                }
+                else
+                {
+                    await SendMessageAsync(message.Chat.Id, $"Comment must be shorter than { COMMENT_MAX_LENGTH } symbols");
+                }
+            }
+            else
+            {
+                instagram.Comment("1697398127030795565_4307857850");
+            }           
         }
 
         private static async void MuteNotificationsAsync(Message message)
@@ -215,7 +245,8 @@ namespace Worker
 
                 var isVerified = await telegramDb.CheckVerificationAsync(message.Chat.Id);
 
-                var command = new BotCommand() { Command = message.Text };
+                // Get command's name
+                var command = new BotCommand() { Command = message.Text.Split(' ')[0] };
 
                 if (commandDict.ContainsKey(command.Command))
                 {
