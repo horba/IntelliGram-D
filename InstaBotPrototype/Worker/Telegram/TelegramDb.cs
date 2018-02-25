@@ -18,6 +18,36 @@ namespace Worker
 
         #region Instagram methods
 
+        public string GetLatestPostId(long chatId)
+        {
+            using (var connection = factory.CreateConnection())
+            {
+                connection.ConnectionString = connectionString;
+                connection.Open();
+                var getPostId = factory.CreateCommand();
+                getPostId.Connection = connection;
+                getPostId.CommandText =
+                        @"SELECT TOP 1 PostId FROM Messages
+                          WHERE Send IS NOT NULL AND ChatId = @ChatId
+                          ORDER BY Timestamp DESC;";
+                var idParam = factory.CreateParameter();
+                idParam.ParameterName = "ChatId";
+                idParam.Value = chatId;
+                getPostId.Parameters.Add(idParam);
+                var reader = getPostId.ExecuteReader();
+
+                if (reader.HasRows)
+                {
+                    reader.Read();
+                    return reader.GetString(0);
+                }
+                else
+                {
+                    throw new Exception("There are no posts");
+                }
+            }
+        }
+
         public string GetUsersToken(long chatId)
         {
             using (var connection = factory.CreateConnection())
