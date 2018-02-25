@@ -5,6 +5,7 @@ using InstaBotPrototype;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Data.Common;
 
 namespace InstaBotPrototype.Services.Instagram
 {
@@ -18,22 +19,20 @@ namespace InstaBotPrototype.Services.Instagram
         const string baseUri = "https://api.instagram.com/";
         const string userUri = baseUri + "v1/users/";
         const string authUri = baseUri + "oauth/authorize?client_id=";
-        // All users, registered in the sandbox.
+        string currentUserId = "";
+        private string connectionString = AppSettingsProvider.Config["connectionString"];
+        private DbProviderFactory factory = DbProviderFactories.GetFactoryByProvider(AppSettingsProvider.Config["dataProvider"]);
+
         // To add new user, you need to add him to the sandbox first, then you
-        // need to use authorize and use GetAllPermissions() method, to get an access token
-        static Dictionary<string, string> accessTokens = new Dictionary<string, string>()
-        {
-            {"5543216871" , "5543216871.937fa75.4bf238c6f78b459bb7d92c0f5716cf85" },
-            {"4307857850" , "4307857850.937fa75.493f293385ea406b920a4b2e16da8d11" },
-            {"6661469241" , "6661469241.937fa75.e8eb4ac54a374d2a942bc99eea5f0035" }
-        };
+        // need authorize and use GetAllPermissions() method, to get an access token
 
         public string GetUserId(string username)
         {
             string getUserInfo = userUri + "search?q=" + username + "&access_token=" + standartToken;
             string response = GetResponse(getUserInfo);
             UsersInfo info = JsonConvert.DeserializeObject<UsersInfo>(response);
-            return info.Users[0].Id;
+            currentUserId =  info.Users[0].Id;
+            return currentUserId;
         }
         public string GetUsername(string token)
         {
@@ -44,11 +43,39 @@ namespace InstaBotPrototype.Services.Instagram
         }
         private string getAccessTokenUrlParam(string userId)
         {
-            return "access_token=" + accessTokens[userId];
+            using (var connection = factory.CreateConnection())
+            {
+                connection.ConnectionString = connectionString;
+                connection.Open();
+                var getUsersToken = factory.CreateCommand();
+                getUsersToken.Connection = connection;
+                getUsersToken.CommandText = @"SELECT AccessToken FROM InstagramIntegration
+                                              WHERE InstagramId = @InstagramId";
+                var idParam = factory.CreateParameter();
+                idParam.ParameterName = "InstagramId";
+                idParam.Value = userId;
+                getUsersToken.Parameters.Add(idParam);
+                var reader = getUsersToken.ExecuteReader();
+                string accessToken;
+                if (reader.HasRows)
+                {
+                    reader.Read();
+                    accessToken = reader.GetString(0);
+                    return "access_token=" + accessToken;
+                }
+                else
+                {
+                    throw new Exception("User was not found");
+                }
+            }
+
+
+
+            
         }
         public IEnumerable<ImageData> GetRecentUserPosts(string userId)
         {
-            string getRecentMedia = userUri + userId + "/media/recent?" + getAccessTokenUrlParam(userId);
+            string getRecentMedia = userUri + userId + "/media/recent?" + getAccessTokenUrlParam(currentUserId);
             string response = GetResponse(getRecentMedia);
             Post posts = JsonConvert.DeserializeObject<Post>(response);
             return posts.Images;
@@ -67,14 +94,14 @@ namespace InstaBotPrototype.Services.Instagram
 
         public UsersInfo GetFollowers(string userId)
         {
-            string getFollowers = userUri + userId + "/follows?" + getAccessTokenUrlParam(userId);
+            string getFollowers = userUri + userId + "/follows?" + getAccessTokenUrlParam(currentUserId);
             string response = GetResponse(getFollowers);
             UsersInfo followers = JsonConvert.DeserializeObject<UsersInfo>(response);
             return followers;
         }
         public WebResponse GetAllPermissions()
         {
-            string authorization = authUri + clientId + "&redirect_uri=" + redirectUri + "&scope=basic+public_content+comments+follower_list&response_type=token";
+            string authorization = authUri + clientId + "&redirect_uri=" + redirectUri + "&scope=basic+public_content+comments+likes+follower_list&response_type=token";
             var webRequest = WebRequest.Create(authorization);
             return webRequest.GetResponse();
         }
