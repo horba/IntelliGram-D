@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Data.Common;
+using System.Net.Http;
 
 namespace InstaBotPrototype.Services.Instagram
 {
@@ -19,6 +20,7 @@ namespace InstaBotPrototype.Services.Instagram
         const string baseUri = "https://api.instagram.com/";
         const string userUri = baseUri + "v1/users/";
         const string authUri = baseUri + "oauth/authorize?client_id=";
+        const string mediaUri = baseUri + "v1/media/";
         string currentUserId = "";
         private string connectionString = AppSettingsProvider.Config["connectionString"];
         private DbProviderFactory factory = DbProviderFactories.GetFactoryByProvider(AppSettingsProvider.Config["dataProvider"]);
@@ -84,7 +86,7 @@ namespace InstaBotPrototype.Services.Instagram
         public IEnumerable<ImageData> GetLatestPosts(string username)
         {
             string userId = GetUserId(username);
-            List<ImageData> posts = new List<ImageData>();
+            var posts = new List<ImageData>();
             foreach (var user in GetFollowers(userId).Users)
             {
                 posts.AddRange(GetRecentUserPosts(user.Id));
@@ -99,6 +101,28 @@ namespace InstaBotPrototype.Services.Instagram
             UsersInfo followers = JsonConvert.DeserializeObject<UsersInfo>(response);
             return followers;
         }
+
+        public async void Like(string mediaId)
+        {
+            using (var client = new HttpClient())
+            {
+                var pars = new FormUrlEncodedContent(new[] { new KeyValuePair<string, string>("access_token", getAccessTokenUrlParam(currentUserId)) });
+                var resp = await client.PostAsync(mediaUri + mediaId + "/likes", pars);
+                Console.WriteLine(resp.StatusCode);
+            }
+        }
+
+
+        public async void Comment(string mediaId,string commentText = "Comment from bot :)")
+        {
+            using (var client = new HttpClient())
+            {
+                var pars = new FormUrlEncodedContent(new[] { new KeyValuePair<string, string>("access_token", getAccessTokenUrlParam(currentUserId)), new KeyValuePair<string, string>("text", commentText) });
+                var resp = await client.PostAsync(mediaUri + mediaId + "/comments", pars);
+                Console.WriteLine(resp.StatusCode);
+            }
+        }
+
         public WebResponse GetAllPermissions()
         {
             string authorization = authUri + clientId + "&redirect_uri=" + redirectUri + "&scope=basic+public_content+comments+likes+follower_list&response_type=token";
