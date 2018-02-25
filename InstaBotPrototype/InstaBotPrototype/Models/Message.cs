@@ -23,5 +23,13 @@ namespace InstaBotPrototype.Models
             this.ChatId = chatId;
             this.Text = message;
         }
+
+        public Message(long chatId, string message,string postId)
+        {
+            this.Id = 0;
+            this.ChatId = chatId;
+            this.Text = message;
+            this.PostId = postId;
+        }
     }
 }

@@ -227,7 +227,7 @@ namespace Worker
                         ++counter;
                         if (chatID.HasValue && ImageIsNew(chatID.Value, post.Images.StandartResolution.Url))
                         {
-                            var msg = new Message(chatID.Value, post.Images.StandartResolution.Url);
+                            var msg = new Message(chatID.Value, post.Images.StandartResolution.Url, post.Id);
                             InsertMessage(msg);
                         }
                     }
