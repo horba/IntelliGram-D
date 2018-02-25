@@ -10,10 +10,46 @@ namespace Worker
     class TelegramDb
     {
         private string connectionString;
-        public TelegramDb(string connectionStr) => connectionString = connectionStr;
         private DbProviderFactory factory = DbProviderFactories.GetFactoryByProvider(AppSettingsProvider.Config["dataProvider"]);
 
-        #region DB methods
+        public TelegramDb(string connectionStr) => connectionString = connectionStr;
+
+        #region Db methods
+
+        #region Instagram methods
+
+        public string GetUsersToken(long chatId)
+        {
+            using (var connection = factory.CreateConnection())
+            {
+                connection.ConnectionString = connectionString;
+                connection.Open();
+                var getUsersToken = factory.CreateCommand();
+                getUsersToken.Connection = connection;
+                getUsersToken.CommandText = 
+                        @"SELECT AccessToken FROM InstagramIntegration
+                         JOIN TelegramIntegration ON InstagramIntegration.UserId = TelegramIntegration.UserId
+                         WHERE TelegramIntegration.ChatId = @ChatId";
+                var idParam = factory.CreateParameter();
+                idParam.ParameterName = "ChatId";
+                idParam.Value = chatId;
+                getUsersToken.Parameters.Add(idParam);
+                var reader = getUsersToken.ExecuteReader();
+                string accessToken;
+                if (reader.HasRows)
+                {
+                    reader.Read();
+                    accessToken = reader.GetString(0);
+                    return accessToken;
+                }
+                else
+                {
+                    throw new Exception("Token was not found");
+                }
+            }
+        }
+
+        #endregion
 
         public async Task SetNotificationAsync(long chatId, bool muted = true)
         {
