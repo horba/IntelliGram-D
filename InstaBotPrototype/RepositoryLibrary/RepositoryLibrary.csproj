@@ -4,17 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{DD19ED8D-4683-4438-88B7-09E04B056EAD}</ProjectGuid>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>DBMigrator</RootNamespace>
-    <AssemblyName>DBMigrator</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <ProjectGuid>{AF853208-83B5-4F92-9481-E3FE8DD05186}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>RepositoryLibrary</RootNamespace>
+    <AssemblyName>RepositoryLibrary</AssemblyName>
+    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>true</Optimize>
@@ -22,10 +20,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -45,29 +41,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DBMigration.cs" />
-    <Compile Include="IndexerAttribute.cs" />
-    <Compile Include="Migrations\M201711290739_CreateMigrationsTable.cs" />
-    <Compile Include="Migrations\M201711290745_CreateUsersTable.cs" />
-    <Compile Include="Migrations\M201712310814_CreateSessionsTable.cs" />
-    <Compile Include="Migrations\M201801082211_CreateConfigurationTable.cs" />
-    <Compile Include="Migrations\M201801082220_CreateTopicTable.cs" />
-    <Compile Include="Migrations\M201801082224_CreateTagTable.cs" />
-    <Compile Include="Migrations\M201801082226_CreateConfigTopicTable.cs" />
-    <Compile Include="Migrations\M201801082231_CreateConfigTagTable.cs" />
-    <Compile Include="Migrations\M201801100151_CreateTelegramIntegrationTable.cs" />
-    <Compile Include="Migrations\M201801102326_CreateTelegramVerificationTable.cs" />
-    <Compile Include="Migrations\M201801102327_CreateUserInsertTrigger.cs" />
-    <Compile Include="Migrations\M201801110327_CreateTelegramIntegrationUpdateTrigger.cs" />
-    <Compile Include="Migrations\M201801211350_CreateInstagramIntegrationTable.cs" />
-    <Compile Include="Migrations\M201801301405_CreateMessagesTable.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="IRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Repository.cs" />
+    <Compile Include="SessionsRepository.cs" />
+    <Compile Include="TagRepository.cs" />
+    <Compile Include="TopicRepository.cs" />
+    <Compile Include="UsersRepository.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config">
-      <SubType>Designer</SubType>
-    </None>
+    <ProjectReference Include="..\InstaBotPrototype\InstaBotPrototype.csproj">
+      <Project>{11ffc5f1-984d-440c-aa2d-9306fee59d7b}</Project>
+      <Name>InstaBotPrototype</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
