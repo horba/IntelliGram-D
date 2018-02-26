@@ -1,7 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Configuration;
-using System.Data.Common;
-using InstaBotPrototype.Models;
 using InstaBotPrototype.Services.DB;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,17 +9,6 @@ namespace InstaBotPrototype.Controllers
     public class ConfigurationController : Controller
     {
         IConfigService configService = new ConfigService();
-
-
-        [HttpPost]
-        public IActionResult Post([FromForm]ConfigurationModel model)
-        {
-            if (IsLoggedIn())
-            {
-                //configService.AddConfig(Request.Cookies["sessionID"]);
-            }
-            return Ok(model);
-        }
         [HttpGet]
         public IActionResult VerifyKey()
         {

@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using System;
-using System.IO;
 using log4net;
 using InstaBotPrototype.Services;
 using Microsoft.AspNetCore;
@@ -11,8 +9,10 @@ namespace InstaBotPrototype
 {
     public class Program
     {
+        private static readonly ILog log = Logger.GetLog<Program>();
         public static void Main(string[] args)
         {
+            log.Debug("Application run");
             BuildWebHost(args).Run();
         }
 
