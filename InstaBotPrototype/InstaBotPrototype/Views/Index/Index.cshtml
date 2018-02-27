@@ -29,7 +29,7 @@
                                 <input class="ig-input large" id="Login" name="Login" required type="text" value="" autocomplete="off" />
                                 <span class="large">Password</span>
                                 <input class="ig-input large last-input" id="Password" name="Password" required type="password" autocomplete="off" value="" />
-                                <div id="loginError"></div>
+                                <div class="error-div" id="loginError"></div>
                                 <input class="ig-button large ig-button-submit" type="submit" value="Submit">
                                 <input id="signInCancel" class="ig-button ig-button-regular large" type="submit" value="Cancel">
                             </form>
@@ -47,7 +47,7 @@
                                 <input class="ig-input large" id="confirm" type="password" required />
                                 <span class="large">E-mail</span>
                                 <input class="ig-input large last-input" type="email" name="Email" required />
-                                <div id="signUpError"></div>
+                                <div class="error-div" id="signUpError"></div>
                                 <input class="ig-button large ig-button-submit" type="submit" value="Submit" />
                                 <input id="signUpCancel" class="ig-button ig-button-regular large" type="submit" value="Cancel">
                             </form>
@@ -60,8 +60,11 @@
                             <div class="config-form-group">
                                 <a class="form-left" href="https://t.me/IntelliGramBot">Go to the telegram bot</a><label id="verifyKeyLabel" />
                             </div>
-                            <div class="config-form-group">
-                                <a class="form-left" href="api/Instagram/Verify">Go to the instagram</a>
+                            <div class="config-form-group" id="verifyInst">
+                                <a class="form-left" href="api/Instagram/Verify">Verify in Instagram</a>
+                            </div>
+                            <div class="config-form-group hidden" id="nickInst">
+                                Your Instagram account : <a id ="nickLink" class="form-left"></a>
                             </div>
                             <div class="config-form-group">
                                 <span>Tags</span>

@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using InstaBotPrototype.Services.Instagram;
 using InstaBotPrototype.Services.DB;
+using System;
+
 namespace InstaBotPrototype.Controllers
 {
     public class InstagramController : Controller
@@ -12,18 +14,21 @@ namespace InstaBotPrototype.Controllers
             _instagramService = instagramService;
             _configService = configService;
         }
+
         [Route("api/Instagram")]
         public ActionResult Index()
         {
-            if (!_configService.IsUserVerifiedInInstagram(Request.Cookies["sessionID"]))
-                return View("Verify");
-            else
-                return View("Redirect");
+           return View("Verify");
         }
         [Route("api/Instagram/Verify")]
         public ActionResult Verify()
         {
-            return Redirect("https://api.instagram.com/oauth/authorize?client_id=937fa7572cb244e9885382f8cedba3c8&redirect_uri="+ AppSettingsProvider.Config["siteAdress"] + "&scope=basic+public_content+comments+likes+follower_list&response_type=token");
+            return Redirect("https://api.instagram.com/oauth/authorize?client_id=937fa7572cb244e9885382f8cedba3c8&redirect_uri="+ AppSettingsProvider.Config["instagramRedirectUrl"] + "&scope=basic+public_content+comments+likes+follower_list&response_type=token");
+        }
+        [Route("api/Instagram/Nick")]
+        public string Nick()
+        {
+            return _configService.GetInstagramNick(Request.Cookies["sessionID"]);
         }
         [Route("api/Instagram")]
         [HttpPost]

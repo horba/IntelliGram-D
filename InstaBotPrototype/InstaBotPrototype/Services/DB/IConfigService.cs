@@ -8,7 +8,7 @@ namespace InstaBotPrototype.Services.DB
         int AddConfig(int userId);
         bool IsLoggedIn(string sessionID);
         void SaveInstagramToken(long id, string nickname, string tokenStr, string sessionId);
-        bool IsUserVerifiedInInstagram(string sessionId);
+        string GetInstagramNick(string sessionId);
         int? GetVerifyKey(string sessionId);
         int? GetUserIdBySession(string sessionId);
         IEnumerable<string> GetUserTopics(int userId);

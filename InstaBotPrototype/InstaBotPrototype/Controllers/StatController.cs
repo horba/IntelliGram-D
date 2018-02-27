@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using InstaBotPrototype.Services;
-using InstaBotPrototype.Services.Autocompletion;
+﻿using InstaBotPrototype.Services;
 using InstaBotPrototype.Services.DB;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,12 +9,13 @@ namespace InstaBotPrototype.Controllers
     {
         private readonly IConfigService configService;
         private readonly IStatService statService;
-        public StatController(IConfigService _configService,IStatService _statService)
+        public StatController(IConfigService _configService, IStatService _statService)
         {
             configService = _configService;
             statService = _statService;
         }
-        public int Photos() {
+        public int Photos()
+        {
             var userId = configService.GetUserIdBySession(Request.Cookies["sessionID"]);
             return statService.CountPhotos(userId.Value);
         }

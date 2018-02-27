@@ -109,7 +109,7 @@ body {
 }
 
 .last-input {
-    margin-bottom: 40px;
+    margin-bottom: 35px;
 }
 
 .menubar {
@@ -149,4 +149,7 @@ body {
 
 .left {
     margin-left: 10px;
+}
+.error-div {
+    margin-bottom: 5px;
 }

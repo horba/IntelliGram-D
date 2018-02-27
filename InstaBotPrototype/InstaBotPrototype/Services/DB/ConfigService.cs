@@ -120,21 +120,29 @@ namespace InstaBotPrototype.Services.DB
                 insertCmd.ExecuteNonQuery();
             }
         }
-        public bool IsUserVerifiedInInstagram(string sessionId)
+        public string GetInstagramNick(string sessionId)
         {
-            using (var dbConnection = factory.CreateConnection())
+            using (var connection = factory.CreateConnection())
             {
-                var id = GetUserIdBySession(sessionId);
-                dbConnection.ConnectionString = connectionString;
-                dbConnection.Open();
-                var insertCmd = factory.CreateCommand();
-                insertCmd.Connection = dbConnection;
-                insertCmd.CommandText = "SELECT COUNT (*) FROM InstagramIntegration WHERE UserId = @Id";
-                var userIdParam = factory.CreateParameter();
-                userIdParam.ParameterName = "@Id";
-                userIdParam.Value = id;
-                insertCmd.Parameters.AddRange(new[] { userIdParam });
-                return Convert.ToInt32(insertCmd.ExecuteScalar()) == 1;
+                connection.ConnectionString = connectionString;
+                connection.Open();
+                var command = factory.CreateCommand();
+                command.CommandText = "SELECT Nickname FROM dbo.InstagramIntegration WHERE UserId = @id";
+                command.Connection = connection;
+                var param = factory.CreateParameter();
+                param.ParameterName = "@id";
+                param.Value = GetUserIdBySession(sessionId);
+                param.DbType = System.Data.DbType.Int32;
+                command.Parameters.Add(param);
+                var reader = command.ExecuteReader();
+                if (reader.HasRows)
+                {
+                    reader.Read();
+                    return reader.GetString(0);
+                }
+                else {
+                    return null;
+                }
             }
         }
         public IEnumerable<string> GetUserTopics(int userId)

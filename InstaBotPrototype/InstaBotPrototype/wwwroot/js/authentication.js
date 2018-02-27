@@ -10,11 +10,15 @@ $("#signUpCancel").click(function (e) {
     e.preventDefault();
     $("#authPage").hide();
     $("#signUp").hide();
+    $("#signUpError").hide();
+    $("#modalSignup")[0].reset();
 });
 $("#signInCancel").click(function (e) {
     e.preventDefault();
     $("#authPage").hide();
     $("#signIn").hide();
+    $("#loginError").hide();
+    $("#modalLogin")[0].reset();
 });
 var $loginForm = $("#modalLogin");
 $loginForm.submit(function (event) {
@@ -58,9 +62,11 @@ function clickHandler(errorDiv, $form) {
         dataType: "json",
         success: function (response) {
             document.cookie = "sessionID=" + response.sessionID;
+            $(errorDiv).hide();
             initConfigPage();
         },
         error: function (response) {
+            $(errorDiv).show();
             $(errorDiv).text(response.responseJSON.errorMessage);
         }
     });
