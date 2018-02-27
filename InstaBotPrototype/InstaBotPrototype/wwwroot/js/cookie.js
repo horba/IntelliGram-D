@@ -8,15 +8,14 @@ function initConfigPage() {
     $.ajax('/api/configuration/VerifyKey', { method: 'GET' })
         .then(function (response) {
             $("#verifyKeyLabel").text(response.verifyKey);
-            $("#configPage").show();
             $("#authPage").hide();
+            $("#btnSignup").hide();
+            $("#btnLogin").hide();
+            $("#logOut").show();
+            $("#configPage").show();
             initItems();
         });
 }
 if (getCookie("sessionID")) {
     initConfigPage();
-}
-else {
-    $("#configPage").hide();
-    $("#authPage").show();
 }

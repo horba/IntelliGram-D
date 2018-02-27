@@ -1,32 +1,23 @@
 body {
     background-color: #fafafa;
+    font-family: "Segoe UI";
+    font-size: 18px;
+    margin: 0;
 }
 
 .block {
     min-width: 200px;
-    min-height: 230px;
     border: 2px solid #e6e6e6;
     border-radius: 10px;
     background-color: #fff;
-    padding: 20px;
-    margin: 10px;
-    font-size: 20px;
-    font-style: normal;
-    font-variant: normal;
-    font-family: "Segoe UI";
+    margin: 10px 0px;
 }
 
-form {
-    margin: 5px;
-    padding: 2px;
-}
-
-.block > div {
-    margin: 5px;
-}
-
-form > div {
-    margin: 2px;
+.modal-block {
+    width: 50%;
+    margin: auto;
+    border: 3px solid #e6e6e6;
+    border-radius: 20px;
 }
 
 .form-left {
@@ -35,58 +26,78 @@ form > div {
     margin-right: 100px;
 }
 
-.btn {
-    background-color: #87CEFA;
-    border: none;
+.ig-button {
     color: white;
-    padding: 12px 12px;
-    text-decoration: none;
-    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
     display: inline-block;
-    font-family: "Segoe UI";
-    font-size: 16px;
+    margin-bottom: 10px;
+    text-align: center;
+    border-style: solid;
+    border-width: 2px;
 }
 
-.modal-input {
-    width: 70%;
-    padding: 12px 20px;
-    box-sizing: border-box;
-    margin: 10px 0;
-    font-family: "Segoe UI";
-    font-size: 16px;
-}
-
-    .modal-input:focus {
-        background-color: lightblue;
-    }
-
-.submit-btn {
-    width: 70%;
-    margin: 15px auto;
-}
-
-    .hoverable-btn:hover {
+    .ig-button:hover {
         cursor: pointer;
         color: #ffffff;
-        background-color: #1E90FF;
     }
 
+.ig-button-regular {
+    background-color: #87CEFA;
+    border-color: #87CEFA;
+}
+
+    .ig-button-regular:hover {
+        background-color: #1E90FF;
+        border-color: #1E90FF;
+    }
+
+.ig-button-cancel {
+    background-color: red;
+    border-color: red;
+}
+
+    .ig-button-cancel:hover {
+        background-color: darkred;
+        border-color: darkred;
+    }
+
+.ig-button-submit {
+    background-color: #4CAF50;
+    ;
+    border-color: #4CAF50;
+    ;
+}
+
+    .ig-button-submit:hover {
+        background-color: #3e8e41;
+        border-color: #3e8e41;
+    }
+
+.ig-input {
+    padding: 12px 20px;
+    border: 2px solid #e0e0e0;
+    border-radius: 4px;
+    box-sizing: border-box;
+    margin-bottom: 4px;
+    font-size: 16px;
+}
+
+.large {
+    width: 50%;
+    padding: 8px 10px;
+}
+
+.small {
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-size: 14px;
+}
+
 .welcome {
-    font: bold 72px 'Lobster Two';
+    margin-left: 20%;
+    font: bold 32px 'Lobster Two';
     background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%,#d6249f 60%,#285AEB 90%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-}
-
-.config-label-random {
-    width: 49.5%;
-    margin-left: 10px;
-}
-
-.error-message {
-    text-align: center;
-    margin: 5px auto;
-    font: bold 18px 'Segoe UI';
 }
 
 .config-form-group {
@@ -97,21 +108,45 @@ form > div {
     display: none;
 }
 
-.centered {
+.last-input {
+    margin-bottom: 40px;
+}
+
+.menubar {
+    background-color: #fff;
+    margin-top: 0px;
+    border-bottom: 2px solid #e6e6e6;
+    height: 40px;
+    padding: 5px;
+}
+
+.modal-header {
     text-align: center;
+    font-size: 24px;
+    font-weight: 300;
+    border-bottom: 3px solid #ececec;
+    margin-bottom: 15px;
+    width: 100%;
+    padding: 10px 0;
 }
 
-.btn-log-reg {
-    width: 30%;
-    margin-top: 25px;
-    margin-bottom: 25px;
+.modal {
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    padding-top: 25px;
+    background-color: rgba(0,0,0,0.4);
 }
 
-.first {
-    margin-right: 20px;
+.header-button-group {
+    float: right;
+    margin-right: 20%;
 }
 
-.footer-text {
-    font: 28px 'Lobster Two';
+.left {
+    margin-left: 10px;
 }
-

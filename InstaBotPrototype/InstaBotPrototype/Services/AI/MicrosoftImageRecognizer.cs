@@ -12,7 +12,7 @@ namespace InstaBotPrototype.Services.AI
         string subscriptionKey = "861b894f16b942fd83adacbe78f563d1";
         string uriBase = @"https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/analyze";
 
-        public override async Task<IEnumerable<string>> RecognizeTopicAsync(byte[] imageBytes)
+        public override async Task<Description> RecognizeTopicAsync(byte[] imageBytes)
         {
             var client = new HttpClient();
 
@@ -34,7 +34,7 @@ namespace InstaBotPrototype.Services.AI
 
                 var request = JsonConvert.DeserializeObject<Request>(contentString);
 
-                return request.Description.Tags;
+                return request.Description;
             }
         }
 

@@ -169,6 +169,8 @@ namespace InstaBotPrototype.Services.Instagram
             public string CreatedTime { get; set; }
             [JsonProperty("tags")]
             public List<String> Tags { get; set; }
+            [JsonProperty("link")]
+            public String Link { get; set; }
         }
         public class Images
         {

@@ -4,27 +4,40 @@ using InstaBotPrototype.Services.AI;
 using InstaBotPrototype.Services.Instagram;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Net.Http;
 
 namespace Worker
 {
+    class MyEqualityComparer : EqualityComparer<TopicModel>
+    {
+        public override bool Equals(TopicModel x, TopicModel y)
+        {
+            return x.Topic.Equals(y.Topic);
+        }
+
+        public override int GetHashCode(TopicModel obj)
+        {
+            return obj.Topic.GetHashCode();
+        }
+    }
     class MessageCreator
     {
         IInstagramService instagramService = new InstagramService();
         IRecognizer recognizer = new MicrosoftImageRecognizer();
         string connectionString = AppSettingsProvider.Config["connectionString"];
         private DbProviderFactory factory = DbProviderFactories.GetFactoryByProvider(AppSettingsProvider.Config["dataProvider"]);
-        private IEnumerable<string> GetUserTopics(int userId)
+        private IEnumerable<TopicModel> GetUserTopics(int userId)
         {
-            var topics = new List<string>();
+            var topics = new List<TopicModel>();
             using (var DbConnection = factory.CreateConnection())
             {
                 DbConnection.ConnectionString = connectionString;
                 DbConnection.Open();
                 var selectTopics = factory.CreateCommand();
-                selectTopics.CommandText = @"SELECT Topic FROM dbo.Configuration 
+                selectTopics.CommandText = @"SELECT Topic,dbo.Topic.TopicID FROM dbo.Configuration 
                                             JOIN dbo.ConfigTopic ON dbo.Configuration.ConfigID = dbo.ConfigTopic.ConfigID 
                                             JOIN Topic ON dbo.Topic.TopicID = dbo.ConfigTopic.TopicID
                                             WHERE dbo.Configuration.UserId = @id";
@@ -37,22 +50,22 @@ namespace Worker
                 var topicsReader = selectTopics.ExecuteReader();
                 while (topicsReader.Read())
                 {
-                    topics.Add(topicsReader.GetString(0));
+                    topics.Add(new TopicModel(topicsReader.GetInt32(1),topicsReader.GetString(0)));
                 }
                 topicsReader.Close();
             }
             return topics;
         }
 
-        private IEnumerable<string> GetUserTags(int userId)
+        private IEnumerable<TopicModel> GetUserTags(int userId)
         {
-            var tags = new List<string>();
+            var tags = new List<TopicModel>();
             using (var DbConnection = factory.CreateConnection())
             {
                 DbConnection.ConnectionString = connectionString;
                 DbConnection.Open();
                 var selectTags = factory.CreateCommand();
-                selectTags.CommandText = @"SELECT Tag FROM dbo.Configuration 
+                selectTags.CommandText = @"SELECT Tag,dbo.Tag.TagID FROM dbo.Configuration 
                                            JOIN dbo.ConfigTag ON dbo.Configuration.ConfigID = dbo.ConfigTag.ConfigID 
                                            JOIN Tag ON dbo.Tag.TagID = dbo.ConfigTag.TagID
                                            WHERE dbo.Configuration.UserId = @id";
@@ -65,7 +78,7 @@ namespace Worker
                 var tagsReader = selectTags.ExecuteReader();
                 while (tagsReader.Read())
                 {
-                    tags.Add(tagsReader.GetString(0));
+                    tags.Add(new TopicModel(tagsReader.GetInt32(1), tagsReader.GetString(0)));
                 }
                 tagsReader.Close();
             }
@@ -123,9 +136,49 @@ namespace Worker
                 postIdParam.Value = msg.PostId;
 
                 insertCmd.Parameters.AddRange(new[] { chatIdParam, msgParam, postIdParam });
-                insertCmd.CommandText = "INSERT INTO Messages VALUES (@ChatId,@Message,GETDATE(),NULL,@PostId);";
-                insertCmd.ExecuteNonQuery();
+                insertCmd.CommandText = "INSERT INTO Messages VALUES (@ChatId,@Message,GETDATE(),NULL,@PostId);SELECT @MessageID = SCOPE_IDENTITY()";
 
+                var messageIDParam = factory.CreateParameter();
+                messageIDParam.DbType = System.Data.DbType.Int32;
+                messageIDParam.Direction = ParameterDirection.Output;
+                messageIDParam.ParameterName = "@MessageID";
+                insertCmd.Parameters.Add(messageIDParam);
+
+                insertCmd.ExecuteNonQuery();
+                var msgID = Convert.ToInt32(messageIDParam.Value);
+                foreach (var tag in msg.Tags) {
+                    var insertTag = factory.CreateCommand();
+                    insertTag.CommandText = "INSERT INTO MessageTag VALUES (@MessageID,@TagID)";
+                    insertTag.Connection = DbConnection;
+                    var tagIDParam = factory.CreateParameter();
+                    tagIDParam.DbType = System.Data.DbType.Int32;
+                    tagIDParam.Value = tag;
+                    tagIDParam.ParameterName = "@TagID";
+                    insertTag.Parameters.Add(tagIDParam);
+                    messageIDParam = factory.CreateParameter();
+                    messageIDParam.DbType = System.Data.DbType.Int32;
+                    messageIDParam.Value = msgID;
+                    messageIDParam.ParameterName = "@MessageID";
+                    insertTag.Parameters.Add(messageIDParam);
+                    insertTag.ExecuteNonQuery();
+                }
+                foreach (var topic in msg.Topics)
+                {
+                    var insertTopic = factory.CreateCommand();
+                    insertTopic.CommandText = "INSERT INTO MessageTopic VALUES (@MessageID,@TopicID)";
+                    insertTopic.Connection = DbConnection;
+                    var topicIDParam = factory.CreateParameter();
+                    topicIDParam.DbType = System.Data.DbType.Int32;
+                    topicIDParam.Value = topic;
+                    topicIDParam.ParameterName = "@TopicID";
+                    insertTopic.Parameters.Add(topicIDParam);
+                    messageIDParam = factory.CreateParameter();
+                    messageIDParam.DbType = System.Data.DbType.Int32;
+                    messageIDParam.Value = msgID;
+                    messageIDParam.ParameterName = "@MessageID";
+                    insertTopic.Parameters.Add(messageIDParam);
+                    insertTopic.ExecuteNonQuery();
+                }
             }
         }
 
@@ -181,7 +234,7 @@ namespace Worker
                 DbConnection.Open();
                 var command = factory.CreateCommand();
                 command.Connection = DbConnection;
-                command.CommandText = "select count(ChatId) from dbo.Messages where ChatId = @chatId and Message = @message";
+                command.CommandText = "select count(ChatId) from dbo.Messages where ChatId = @chatId and PostId = @message";
                 var p1 = factory.CreateParameter();
                 p1.ParameterName = "@chatId";
                 p1.Value = chatID.Value;
@@ -206,28 +259,36 @@ namespace Worker
                 foreach (var post in instagramService.GetLatestPosts(user))
                 {
                     var response = client.GetByteArrayAsync(post.Images.StandartResolution.Url).Result;
-                    var matchingTopics = topics.Intersect(recognizer.RecognizeTopic(response));
-                    var matchingTags = tags.Intersect(post.Tags);
+                    var description = recognizer.RecognizeTopic(response);
+                    var topicsRec = description.Tags.Select(x => new TopicModel(0, x)).ToList();
+                    var matchingTopics = topics.Intersect(topicsRec, new MyEqualityComparer());
+                    var matchingTags = tags.Intersect(post.Tags.Select(x => new TopicModel(0, x)), new MyEqualityComparer()).ToList();
                     if (matchingTopics.Count() > 0 || matchingTags.Count() > 0)
                     {
+                        var caption = description.Captions.FirstOrDefault();
+                        var txt = post.Link;
+                        if (caption != null)
+                            txt += Environment.NewLine + "Description : " + caption.Text;
+                        var msg = new Message(chatID.Value, txt , post.Id);
                         Console.WriteLine("Image # " + counter);
                         Console.WriteLine(string.Format("Url : {0}", post.Images.StandartResolution.Url));
                         Console.Write("Matching topics : ");
                         foreach (var topic in matchingTopics)
                         {
-                            Console.Write(topic + " ");
+                            msg.Topics.Add(topic.TopicId.Value);
+                            Console.Write(topic.Topic + " ");
                         }
                         Console.WriteLine();
                         Console.Write("Matching tags : ");
                         foreach (var tag in matchingTags)
                         {
-                            Console.Write(tag + " ");
+                            msg.Tags.Add(tag.TopicId.Value);
+                            Console.Write(tag.Topic + " ");
                         }
                         Console.WriteLine();
                         ++counter;
-                        if (chatID.HasValue && ImageIsNew(chatID.Value, post.Images.StandartResolution.Url))
+                        if (chatID.HasValue && ImageIsNew(chatID.Value, post.Id))
                         {
-                            var msg = new Message(chatID.Value, post.Images.StandartResolution.Url, post.Id);
                             InsertMessage(msg);
                         }
                     }

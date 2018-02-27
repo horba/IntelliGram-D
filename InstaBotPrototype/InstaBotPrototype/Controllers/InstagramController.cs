@@ -23,7 +23,7 @@ namespace InstaBotPrototype.Controllers
         [Route("api/Instagram/Verify")]
         public ActionResult Verify()
         {
-            return Redirect("https://api.instagram.com/oauth/authorize?client_id=937fa7572cb244e9885382f8cedba3c8&redirect_uri=http://localhost:58687/api/Instagram&scope=basic+public_content+comments+likes+follower_list&response_type=token");
+            return Redirect("https://api.instagram.com/oauth/authorize?client_id=937fa7572cb244e9885382f8cedba3c8&redirect_uri="+ AppSettingsProvider.Config["siteAdress"] + "&scope=basic+public_content+comments+likes+follower_list&response_type=token");
         }
         [Route("api/Instagram")]
         [HttpPost]

@@ -1,14 +1,20 @@
 ﻿$("#btnLogin").click(function () {
-    $("#signUp").css("display", "none");
-    $("#btnLogin").css("background-color", "#1E90FF");
-    $("#btnSignup").css("background-color", "#87CEFA");
-    $("#signIn").css("display", "block");
+    $("#authPage").show();
+    $("#signIn").show();
 });
 $("#btnSignup").click(function () {
-    $("#signIn").css("display", "none");
-    $("#signUp").css("display", "block");
-    $("#btnLogin").css("background-color", "#87CEFA");
-    $("#btnSignup").css("background-color", "#1E90FF");
+    $("#authPage").show();
+    $("#signUp").show();
+});
+$("#signUpCancel").click(function (e) {
+    e.preventDefault();
+    $("#authPage").hide();
+    $("#signUp").hide();
+});
+$("#signInCancel").click(function (e) {
+    e.preventDefault();
+    $("#authPage").hide();
+    $("#signIn").hide();
 });
 var $loginForm = $("#modalLogin");
 $loginForm.submit(function (event) {
@@ -30,10 +36,16 @@ $signUpForm.submit(function (event) {
 $("#logOut").click(function (e) {
     e.preventDefault();
     document.cookie = "sessionID" + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-    $("#loginPopup").hide();
-    $("#signupPopup").hide();
+    $("#authPage").hide();
+    $("#signUp").hide();
+    $("#signIn").hide();
+    $("#logOut").hide();
     $("#configPage").hide();
-    $("#authPage").show();
+    $("#btnSignup").show();
+    $("#btnLogin").show();
+    $("#authPage").hide();
+    $("#modalLogin")[0].reset();
+    $("#modalSignup")[0].reset();
     tags = [];
     topics = [];
     $(".tag-topic").remove();

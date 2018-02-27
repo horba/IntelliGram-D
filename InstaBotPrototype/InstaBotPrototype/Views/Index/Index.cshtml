@@ -1,7 +1,3 @@
-@{
-    Layout = null;
-}
-
 <!DOCTYPE html>
 
 <html>
@@ -14,41 +10,51 @@
 </head>
 <body>
 
-    <div class="page-container">
-        <div class="header"><span class="welcome">IntelliGram</span></div>
+    <div id="page" class="page-container">
+        <div class="header menubar">
+            <span class="welcome">IntelliGram</span><img src="~/bot.png">
+            <div class="header-button-group"><button class="ig-button ig-button-regular small" id="btnLogin">Sign in</button><button class="ig-button ig-button-regular small left" id="btnSignup">Sign up</button><button class="ig-button ig-button-regular small hidden" id="logOut">Log out</button></div>
+        </div>
         <div class="content-container">
             <div class="content-left"></div>
             <div class="content-center">
-                <div class="hidden" id="authPage">
-                    <div class="block centered">
-                        <div>
-                            <button class="btn btn-log-reg first" id="btnLogin">Log in</button><button class="btn btn-log-reg" id="btnSignup">Sign Up</button>
-                        </div>
+                <div class="modal hidden" id="authPage">
+                    <div class="block modal-block">
                         <div id="signIn" class="hidden">
-                            <form action="/api/Authentication/Login" id="modalLogin" method="post">
-                                <div>
-                                    <input class="modal-input" id="Login" name="Login" placeholder="Login....." required type="text" value="" />
+                            <form action="/api/Authentication/Login" id="modalLogin" method="post" class="modal-container">
+                                <div class="modal-header">
+                                    <span>Sign In</span>
                                 </div>
-                                <div>
-                                    <input class="modal-input" id="Password" name="Password" placeholder="Password......" required type="password" value="" />
-                                </div>
-                                <div class="error-message" id="loginError"></div>
-                                <input class="btn hoverable-btn submit-btn" type="submit" value="Submit">
+                                <span class="large">Login</span>
+                                <input class="ig-input large" id="Login" name="Login" required type="text" value="" autocomplete="off" />
+                                <span class="large">Password</span>
+                                <input class="ig-input large last-input" id="Password" name="Password" required type="password" autocomplete="off" value="" />
+                                <div id="loginError"></div>
+                                <input class="ig-button large ig-button-submit" type="submit" value="Submit">
+                                <input id="signInCancel" class="ig-button ig-button-regular large" type="submit" value="Cancel">
                             </form>
                         </div>
-                        <div id="signUp">
-                            <form action="/api/Authentication/Register" id="modalSignup" method="post">
-                                <input class="modal-input" type="text" placeholder="Enter your login" name="Login" required /><br />
-                                <input class="modal-input" id="password" type="password" placeholder="Enter your password" name="Password" required />
-                                <input class="modal-input" id="confirm" type="password" placeholder="Confirm your password" required />
-                                <input class="modal-input" type="email" placeholder="Enter your email" name="Email" required />
-                                <div class="error-message" id="signUpError"></div>
-                                <input class="btn hoverable-btn submit-btn" type="submit" value="Submit" />
+                        <div id="signUp" class="hidden">
+                            <form action="/api/Authentication/Register" id="modalSignup" method="post" class="modal-container">
+                                <div class="modal-header">
+                                    <span>Sign Up</span>
+                                </div>
+                                <span class="large">Login</span>
+                                <input class="ig-input large" type="text" name="Login" required />
+                                <span class="large">Password</span>
+                                <input class="ig-input large" id="password" type="password" name="Password" required />
+                                <span class="large">Confirm</span>
+                                <input class="ig-input large" id="confirm" type="password" required />
+                                <span class="large">E-mail</span>
+                                <input class="ig-input large last-input" type="email" name="Email" required />
+                                <div id="signUpError"></div>
+                                <input class="ig-button large ig-button-submit" type="submit" value="Submit" />
+                                <input id="signUpCancel" class="ig-button ig-button-regular large" type="submit" value="Cancel">
                             </form>
                         </div>
                     </div>
                 </div>
-                <div id="configPage">
+                <div id="configPage" class="hidden">
                     <div class="block">
                         <form id="configForm">
                             <div class="config-form-group">
@@ -79,25 +85,21 @@
                                     <li class="topicComplete"></li>
                                 </ul>
                             </div>
-                            <div class="centered">
-                                <button id="logOut" class="btn hoverable-btn">Log out</button>
-                            </div>
                         </form>
                     </div>
                     <div class="block">
-                        <div style="margin-left: 30px; margin-top: 0">
+                        <div style="margin-left: 30px; margin-top: 0;margin-bottom:20px;">
                             <h3>Statistics</h3>
-                            <div>Processed <span id="processed_posts">1012</span> posts</div>
                             <div>Matched 21 photos</div>
                             <div>Matched tags: 12</div>
-                            <div>Matched topics: 9</div>
+                            <div class="">Matched topics: 9</div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="content-right"></div>
         </div>
-        <div class="footer footer-text">© 2017 IntelliGram-D</div>
+        <div class="footer">© 2018 IntelliGram-D</div>
     </div>
 
 
