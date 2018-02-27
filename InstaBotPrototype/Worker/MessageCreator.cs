@@ -118,8 +118,12 @@ namespace Worker
                 msgParam.ParameterName = "@Message";
                 msgParam.Value = msg.Text;
 
-                insertCmd.Parameters.AddRange(new[] { chatIdParam, msgParam });
-                insertCmd.CommandText = "INSERT INTO Messages VALUES (@ChatId,@Message,GETDATE(),NULL);";
+                var postIdParam = factory.CreateParameter();
+                postIdParam.ParameterName = "@PostId";
+                postIdParam.Value = msg.PostId;
+
+                insertCmd.Parameters.AddRange(new[] { chatIdParam, msgParam, postIdParam });
+                insertCmd.CommandText = "INSERT INTO Messages VALUES (@ChatId,@Message,GETDATE(),NULL,@PostId);";
                 insertCmd.ExecuteNonQuery();
 
             }
@@ -223,7 +227,7 @@ namespace Worker
                         ++counter;
                         if (chatID.HasValue && ImageIsNew(chatID.Value, post.Images.StandartResolution.Url))
                         {
-                            var msg = new Message(chatID.Value, post.Images.StandartResolution.Url);
+                            var msg = new Message(chatID.Value, post.Images.StandartResolution.Url, post.Id);
                             InsertMessage(msg);
                         }
                     }

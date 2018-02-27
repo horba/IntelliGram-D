@@ -23,7 +23,10 @@ namespace Worker
 
             var getMsgCmd = factory.CreateCommand();
             getMsgCmd.Connection = dbConnection;
-            getMsgCmd.CommandText = "SELECT * FROM Messages WHERE Send IS NULL ORDER BY Timestamp;";
+            getMsgCmd.CommandText =
+                @"SELECT Messages.Id, Messages.ChatId, Messages.Message FROM Messages
+                  JOIN TelegramIntegration ON TelegramIntegration.ChatId = Messages.ChatId
+                  WHERE Send IS NULL AND Muted = 0 ORDER BY Timestamp;";
             var reader = getMsgCmd.ExecuteReader();
 
             List<Message> messages = new List<Message>();

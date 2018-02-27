@@ -10,9 +10,107 @@ namespace Worker
     class TelegramDb
     {
         private string connectionString;
-        public TelegramDb(string connectionStr) => connectionString = connectionStr;
         private DbProviderFactory factory = DbProviderFactories.GetFactoryByProvider(AppSettingsProvider.Config["dataProvider"]);
-        #region DB methods
+
+        public TelegramDb(string connectionStr) => connectionString = connectionStr;
+
+        #region Db methods
+
+        #region Instagram methods
+
+        public string GetLatestPostId(long chatId)
+        {
+            using (var connection = factory.CreateConnection())
+            {
+                connection.ConnectionString = connectionString;
+                connection.Open();
+                var getPostId = factory.CreateCommand();
+                getPostId.Connection = connection;
+                getPostId.CommandText =
+                        @"SELECT TOP 1 PostId FROM Messages
+                          WHERE Send IS NOT NULL AND ChatId = @ChatId
+                          ORDER BY Timestamp DESC;";
+                var idParam = factory.CreateParameter();
+                idParam.ParameterName = "ChatId";
+                idParam.Value = chatId;
+                getPostId.Parameters.Add(idParam);
+                var reader = getPostId.ExecuteReader();
+
+                if (reader.HasRows)
+                {
+                    reader.Read();
+                    return reader.GetString(0);
+                }
+                else
+                {
+                    throw new Exception("There are no posts");
+                }
+            }
+        }
+
+        public string GetUsersToken(long chatId)
+        {
+            using (var connection = factory.CreateConnection())
+            {
+                connection.ConnectionString = connectionString;
+                connection.Open();
+                var getUsersToken = factory.CreateCommand();
+                getUsersToken.Connection = connection;
+                getUsersToken.CommandText = 
+                        @"SELECT AccessToken FROM InstagramIntegration
+                         JOIN TelegramIntegration ON InstagramIntegration.UserId = TelegramIntegration.UserId
+                         WHERE TelegramIntegration.ChatId = @ChatId";
+                var idParam = factory.CreateParameter();
+                idParam.ParameterName = "ChatId";
+                idParam.Value = chatId;
+                getUsersToken.Parameters.Add(idParam);
+                var reader = getUsersToken.ExecuteReader();
+                string accessToken;
+                if (reader.HasRows)
+                {
+                    reader.Read();
+                    accessToken = reader.GetString(0);
+                    return accessToken;
+                }
+                else
+                {
+                    throw new Exception("Token was not found");
+                }
+            }
+        }
+
+        #endregion
+
+        public async Task SetNotificationAsync(long chatId, bool muted = true)
+        {
+            using (var connection = CreateConnection())
+            {
+                connection.ConnectionString = connectionString;
+                await connection.OpenAsync();
+                string updateQuery = "UPDATE dbo.TelegramIntegration SET Muted = @MuteOption WHERE ChatId = @ChatId;";
+                var muteCmd = CreateCommand(updateQuery, connection);
+                muteCmd.Parameters.Add(CreateParameter("@ChatId", chatId, DbType.Int64));
+                muteCmd.Parameters.Add(CreateParameter("@MuteOption", muted, DbType.Boolean));
+                muteCmd.Connection = connection;
+                await muteCmd.ExecuteNonQueryAsync();
+            }
+        }
+
+        public async Task<bool> IsMutedAsync(long chatId)
+        {
+            using (var dbConnection = CreateConnection())
+            {
+                dbConnection.ConnectionString = connectionString;
+                dbConnection.Open();
+
+                string muteQuery = "SELECT Muted FROM dbo.TelegramIntegration WHERE ChatId = @ChatId;";
+                var selectMute = CreateCommand(muteQuery, dbConnection);
+                selectMute.Parameters.Add(CreateParameter("@ChatId", chatId, DbType.Int64));
+                selectMute.Connection = dbConnection;
+
+                return (bool)await selectMute.ExecuteScalarAsync();
+            }
+        }
 
         public async Task<string> GetUsersAsync()
         {
@@ -73,8 +171,7 @@ namespace Worker
                     {
                         addCmd.Parameters.Add(CreateParameter("@ChatId", message.Chat.Id, DbType.Int32));
                         addCmd.Parameters.Add(CreateParameter("@FirstName", message.Chat.FirstName));
-                        if (message.Chat.LastName != null)
-                             addCmd.Parameters.Add(CreateParameter("@LastName", message.Chat.LastName));
+                        addCmd.Parameters.Add(CreateParameter("@LastName", (object)message.Chat.LastName ?? DBNull.Value));
                         await addCmd.ExecuteNonQueryAsync();
                         return true;
                     }
@@ -157,19 +254,26 @@ namespace Worker
                 #endregion
             }
         }
+
+        #endregion
+
+        #region Factory
+
         private DbConnection CreateConnection()
         {
             var command = factory.CreateConnection();
             command.ConnectionString = connectionString;
             return command;
         }
-        private DbCommand CreateCommand(string query,DbConnection connection) {
+
+        private DbCommand CreateCommand(string query, DbConnection connection) {
             var command = factory.CreateCommand();
             command.CommandText = query;
             command.Connection = connection;
             return command;
         }
-        private DbParameter CreateParameter(string name, object value,DbType type = DbType.String)
+
+        private DbParameter CreateParameter(string name, object value, DbType type = DbType.String)
         {
             var param = factory.CreateParameter();
             param.ParameterName = name;
@@ -177,6 +281,8 @@ namespace Worker
             param.DbType = type;
             return param;
         }
+
         #endregion
+
     }
 }
