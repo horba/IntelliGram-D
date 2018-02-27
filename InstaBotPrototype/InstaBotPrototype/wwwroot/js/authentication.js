@@ -1,18 +1,15 @@
 ﻿$("#btnLogin").click(function () {
-    $("#loginPopup").show();
-});
-$("#closeLogin").click(function () {
-    $("#loginPopup").hide();
-    $("#loginError").text("");
+    $("#signUp").css("display", "none");
+    $("#btnLogin").css("background-color", "#1E90FF");
+    $("#btnSignup").css("background-color", "#87CEFA");
+    $("#signIn").css("display", "block");
 });
 $("#btnSignup").click(function () {
-    $("#signupPopup").show();
+    $("#signIn").css("display", "none");
+    $("#signUp").css("display", "block");
+    $("#btnLogin").css("background-color", "#87CEFA");
+    $("#btnSignup").css("background-color", "#1E90FF");
 });
-$("#closeSignUp").click(function () {
-    $("#signupPopup").hide();
-    $("#signupError").text("");
-});
-
 var $loginForm = $("#modalLogin");
 $loginForm.submit(function (event) {
     event.preventDefault();
@@ -28,7 +25,7 @@ $signUpForm.submit(function (event) {
     else {
         $(errorDiv).text("Passwords are not matching");
     }
-    
+
 });
 $("#logOut").click(function (e) {
     e.preventDefault();
@@ -37,6 +34,9 @@ $("#logOut").click(function (e) {
     $("#signupPopup").hide();
     $("#configPage").hide();
     $("#authPage").show();
+    tags = [];
+    topics = [];
+    $(".tag-topic").remove();
 });
 function clickHandler(errorDiv, $form) {
     $.ajax({

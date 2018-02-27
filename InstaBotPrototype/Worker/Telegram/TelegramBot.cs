@@ -1,6 +1,6 @@
-﻿using System;
+﻿using InstaBotPrototype;
+using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -28,10 +28,10 @@ namespace Worker
         {
             try
             {
-                telegramApiKey = ConfigurationManager.AppSettings["TelegramApiKey"];
+                telegramApiKey = AppSettingsProvider.Config["telegramApiKey"];
                 bot = new TelegramBotClient(telegramApiKey);
 
-                telegramDb = new TelegramDb(ConfigurationManager.ConnectionStrings[1].ConnectionString);
+                telegramDb = new TelegramDb(AppSettingsProvider.Config["connectionString"]);
             }
             catch (Exception e)
             {
@@ -211,3 +211,4 @@ namespace Worker
         #endregion
     }
 }
+

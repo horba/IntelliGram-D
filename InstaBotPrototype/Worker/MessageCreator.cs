@@ -1,9 +1,9 @@
-﻿using InstaBotPrototype.Models;
+﻿using InstaBotPrototype;
+using InstaBotPrototype.Models;
 using InstaBotPrototype.Services.AI;
 using InstaBotPrototype.Services.Instagram;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data.Common;
 using System.Linq;
 using System.Net.Http;
@@ -14,10 +14,9 @@ namespace Worker
     {
         IInstagramService instagramService = new InstagramService();
         IRecognizer recognizer = new MicrosoftImageRecognizer();
-        string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
-        DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
-
-        IEnumerable<string> GetUserTopics(int userId)
+        string connectionString = AppSettingsProvider.Config["connectionString"];
+        private DbProviderFactory factory = DbProviderFactories.GetFactoryByProvider(AppSettingsProvider.Config["dataProvider"]);
+        private IEnumerable<string> GetUserTopics(int userId)
         {
             var topics = new List<string>();
             using (var DbConnection = factory.CreateConnection())
@@ -45,7 +44,7 @@ namespace Worker
             return topics;
         }
 
-        IEnumerable<string> GetUserTags(int userId)
+        private IEnumerable<string> GetUserTags(int userId)
         {
             var tags = new List<string>();
             using (var DbConnection = factory.CreateConnection())
@@ -73,7 +72,7 @@ namespace Worker
             return tags;
         }
 
-        long? GetChatIdByUserId(int id)
+        private long? GetChatIdByUserId(int id)
         {
             long? userId = null;
             using (var DbConnection = factory.CreateConnection())
@@ -82,8 +81,8 @@ namespace Worker
                 DbConnection.Open();
                 var selectId = factory.CreateCommand();
                 selectId.CommandText = @"SELECT [ChatId]
-  FROM[dbo].[TelegramIntegration]
-  WHERE[dbo].[TelegramIntegration].[UserId] = @id; ";
+                                          FROM[dbo].[TelegramIntegration]
+                                          WHERE[dbo].[TelegramIntegration].[UserId] = @id;";
                 selectId.Connection = DbConnection;
                 var parameter = factory.CreateParameter();
                 parameter.ParameterName = "@id";
@@ -101,7 +100,7 @@ namespace Worker
             return userId;
         }
 
-        void InsertMessage(Message msg)
+        private void InsertMessage(Message msg)
         {
             using (var DbConnection = factory.CreateConnection())
             {
@@ -126,7 +125,7 @@ namespace Worker
             }
         }
 
-        int? GetUserIdByInstagram(string nickname)
+        private int? GetUserIdByInstagram(string nickname)
         {
             int? userId = null;
             using (var DbConnection = factory.CreateConnection())
@@ -151,7 +150,7 @@ namespace Worker
             return userId;
         }
 
-        IEnumerable<string> GetAllInstagramUsers()
+        private IEnumerable<string> GetAllInstagramUsers()
         {
             var nicknames = new List<string>();
             using (var DbConnection = factory.CreateConnection())
@@ -170,7 +169,25 @@ namespace Worker
             }
             return nicknames;
         }
-
+        private bool ImageIsNew(long? chatID, string url)
+        {
+            using (var DbConnection = factory.CreateConnection())
+            {
+                DbConnection.ConnectionString = connectionString;
+                DbConnection.Open();
+                var command = factory.CreateCommand();
+                command.Connection = DbConnection;
+                command.CommandText = "select count(ChatId) from dbo.Messages where ChatId = @chatId and Message = @message";
+                var p1 = factory.CreateParameter();
+                p1.ParameterName = "@chatId";
+                p1.Value = chatID.Value;
+                var p2 = factory.CreateParameter();
+                p2.ParameterName = "@message";
+                p2.Value = url;
+                command.Parameters.AddRange(new[] { p1, p2 });
+                return Convert.ToInt32(command.ExecuteScalar()) == 0;
+            }
+        }
         public void Start()
         {
             var client = new HttpClient();
@@ -204,42 +221,12 @@ namespace Worker
                         }
                         Console.WriteLine();
                         ++counter;
-                        if (chatID.HasValue)
+                        if (chatID.HasValue && ImageIsNew(chatID.Value, post.Images.StandartResolution.Url))
                         {
-                            var message = new Message(chatID.Value, post.Images.StandartResolution.Url);
-
-                            if (IsNew(message))
-                            {
-                                InsertMessage(message);
-                            }
+                            var msg = new Message(chatID.Value, post.Images.StandartResolution.Url);
+                            InsertMessage(msg);
                         }
                     }
-                }
-            }
-
-            bool IsNew(Message message)
-            {
-                var connection = factory.CreateConnection();
-                connection.ConnectionString = connectionString;
-
-                using (var command = factory.CreateCommand())
-                {
-                    command.Connection = connection;
-                    command.CommandText = "select count(ChatId) from dbo.Messages where ChatId = @chatId and Message = @message";
-
-                    var p1 = factory.CreateParameter();
-                    p1.ParameterName = "@chatId";
-                    p1.Value = message.ChatId;
-
-
-                    var p2 = factory.CreateParameter();
-                    p2.ParameterName = "@message";
-                    p2.Value = message.Text;
-
-                    command.Parameters.AddRange(new[] { p1, p2 });
-                    var count = (int)command.ExecuteScalar();
-
-                    return count == 0;
                 }
             }
         }

@@ -10,6 +10,7 @@ function initConfigPage() {
             $("#verifyKeyLabel").text(response.verifyKey);
             $("#configPage").show();
             $("#authPage").hide();
+            initItems();
         });
 }
 if (getCookie("sessionID")) {

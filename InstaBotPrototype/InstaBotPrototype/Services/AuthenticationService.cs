@@ -1,18 +1,17 @@
 using InstaBotPrototype.Models;
 using Scrypt;
 using System;
-using System.Configuration;
 using System.Data.Common;
+
 
 namespace InstaBotPrototype.Services
 {
     public class AuthenticationService : IAuthenticationService
     {
-        private string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
-        private DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
+        private string connectionString = AppSettingsProvider.Config["connectionString"];
         private readonly ScryptEncoder encoder = new ScryptEncoder();
-        private readonly string pepper = ConfigurationManager.AppSettings["Pepper"];
-
+        private readonly string pepper = AppSettingsProvider.Config["pepper"];
+        private DbProviderFactory factory = DbProviderFactories.GetFactoryByProvider(AppSettingsProvider.Config["dataProvider"]);
         public string Login(LoginModel model)
         {
             Guid? sessionID = null;

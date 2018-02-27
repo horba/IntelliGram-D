@@ -1,7 +1,4 @@
-﻿using System;
-using System.Configuration;
-using System.Data.Common;
-using InstaBotPrototype.Models;
+﻿using System.Collections.Generic;
 using InstaBotPrototype.Services.DB;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,67 +8,78 @@ namespace InstaBotPrototype.Controllers
     [Route("api/[controller]/[action]")]
     public class ConfigurationController : Controller
     {
-
-        static string connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
-        IConfigService configService = new ConfigService(connectionString);
-        DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
-
-        // GET api/configuration
-        [HttpGet]
-        public ConfigurationModel Get()
-        {
-            if (IsLoggedIn())
-            {
-                return configService.GetConfig();
-            }
-            return null;
-        }
-
-        // GET api/configuration/5
-        [HttpGet("{id}")]
-        public ConfigurationModel Get(int id)
-        {
-            if (IsLoggedIn())
-            {
-                return configService.GetConfig(id);
-            }
-            return null;
-        }
-
-        // POST api/configuration
-        [HttpPost]
-        public IActionResult Post([FromForm]ConfigurationModel model)
-        {
-            if (IsLoggedIn())
-            {
-                configService.SaveConfig(model, Request.Cookies["sessionID"]);
-            }
-            return Ok(model);
-        }
-
-        // PUT api/configuration/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody]string value)
-        {
-            if (IsLoggedIn())
-            {
-                // code here
-            }
-        }
-
-        // DELETE api/configuration/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-            if (IsLoggedIn())
-            {
-                // code here
-            }
-        }
+        IConfigService configService = new ConfigService();
         [HttpGet]
         public IActionResult VerifyKey()
         {
             return new ObjectResult(new { verifyKey = configService.GetVerifyKey(Request.Cookies["sessionID"]) });
+        }
+
+        public IEnumerable<string> GetTags()
+        {
+            var userId = configService.GetUserIdBySession(Request.Cookies["sessionID"]);
+            if (userId.HasValue)
+            {
+                return configService.GetUserTags(userId.Value);
+            }
+            else
+            {
+                return null;
+            }
+        }
+        public IEnumerable<string> GetTopics()
+        {
+            var userId = configService.GetUserIdBySession(Request.Cookies["sessionID"]);
+            if (userId.HasValue) {
+                return configService.GetUserTopics(userId.Value);
+            }
+            else {
+                return null;
+            }
+        }
+        [HttpPost]
+        public void AddTag(string item)
+        {
+            var userId = configService.GetUserIdBySession(Request.Cookies["sessionID"]); 
+            if (userId.HasValue)
+            {
+                var configId = configService.GetLatestConfig(userId.Value);
+                configService.AddTag(item, configId.Value);
+            }
+        }
+        [HttpPost]
+        public void AddTopic(string item)
+        {
+            var userId = configService.GetUserIdBySession(Request.Cookies["sessionID"]);
+
+            if (userId.HasValue)
+            {
+                var configId = configService.GetLatestConfig(userId.Value);
+                configService.AddTopic(item, configId.Value);
+            }
+        }
+        
+        [HttpDelete]
+        public void DeleteTopic(string item)
+        {
+            var userId = configService.GetUserIdBySession(Request.Cookies["sessionID"]);
+
+            if (userId.HasValue)
+            {
+                var configId = configService.GetLatestConfig(userId.Value);
+                configService.DeleteTopic(item, configId.Value);
+            }
+        }
+        [HttpDelete]
+        public void DeleteTag(string item)
+        {
+            var userId = configService.GetUserIdBySession(Request.Cookies["sessionID"]);
+
+            if (userId.HasValue)
+            {
+                var configId = configService.GetLatestConfig(userId.Value);
+                configService.DeleteTag(item, configId.Value);
+            }
         }
         private bool IsLoggedIn()
         {

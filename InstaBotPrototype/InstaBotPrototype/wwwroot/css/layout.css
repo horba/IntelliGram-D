@@ -1,0 +1,41 @@
+﻿.page-container {
+    display: flex;
+    flex-flow: column wrap;
+}
+.content-container {
+    display: flex;
+    flex-flow: row nowrap;
+    order: 2;
+}
+.header {
+    align-self: stretch;
+    text-align: center;
+    order: 1;
+}
+.footer {
+    align-self: stretch;
+    text-align: center;
+    order: 3;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 1rem;
+}
+.content-left {
+    flex-grow: 1;
+    flex-basis: 20%;
+    order: 1;
+}
+
+.content-center {
+    flex-grow: 3;
+    flex-basis: 60%;
+    order: 2;
+}
+
+.content-right {
+    flex-grow: 1;
+    flex-basis: 20%;
+    order: 3;
+}

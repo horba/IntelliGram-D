@@ -1,104 +1,42 @@
 ﻿using System;
 using System.Data;
-using System.Configuration;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Data.Common;
-using InstaBotPrototype.Models;
 
 namespace InstaBotPrototype.Services.DB
 {
     public class ConfigService : IConfigService
     {
-        private string connectionString;
-        private DbProviderFactory factory = DbProviderFactories.GetFactory(ConfigurationManager.ConnectionStrings[1].ProviderName);
-        private readonly char[] trimChar = { ' ', '\n', '\t' };
-        private const int fieldLength = 128;
-
-        public ConfigService()
-        {
-            connectionString = ConfigurationManager.ConnectionStrings[1].ConnectionString;
-        }
-
-        public ConfigService(string connectionStr)
-        {
-            connectionString = connectionStr;
-        }
-
+        private string connectionString = AppSettingsProvider.Config["connectionString"];
+        private DbProviderFactory factory = DbProviderFactories.GetFactoryByProvider(AppSettingsProvider.Config["dataProvider"]);
         #region IConfigService implementation
-
-        public ConfigurationModel GetConfig()
+        public int AddConfig(int userId)
         {
-            return new ConfigurationModel
+            using (var connection = factory.CreateConnection())
             {
-                Tags = new TagModel[] { new TagModel { Tag = "tag1" }, new TagModel { Tag = "tag2" } },
-                Topics = new TopicModel[] { new TopicModel { Topic = "topic1" }, new TopicModel { Topic = "topic2" } }
-            };
-        }
-
-        public ConfigurationModel GetConfig(int? id)
-        {
-            if (id != null && id > 0)
-            {
-                var configModel = new ConfigurationModel();
-                using (var connection =
-                    new SqlConnection(connectionString))
-                {
-                    try
-                    {
-                        configModel.Tags = GetTagsByConfigId(id, connection);
-                        configModel.Topics = GetTopicsByConfigId(id, connection);
-                        return configModel;
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.Message);
-                    }
-                }
-            }
-            else
-            {
-                throw new Exception("Id must be a positive not null int number");
-            }
-            return null;
-        }
-
-        public void SaveConfig(ConfigurationModel model, String sessionId)
-        {
-            using (var connection = new SqlConnection(connectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    string addConfigQuery =
-                       "INSERT INTO Configuration (UserId) " +
-                       "VALUES (@UserId); " +
-                       "SELECT @ConfigID = SCOPE_IDENTITY();";
-                    SqlCommand addConfigCmd = new SqlCommand(addConfigQuery, connection);
-                    addConfigCmd.Parameters.Add("@UserId", SqlDbType.Int).Value = GetUserIdBySession(sessionId);
-                    SqlParameter configID = new SqlParameter()
-                    {
-                        ParameterName = "@ConfigID",
-                        SqlDbType = SqlDbType.Int,
-                        Direction = ParameterDirection.Output
-                    };
-                    addConfigCmd.Parameters.Add(configID);
-                    addConfigCmd.ExecuteNonQuery();
-
-                    model.ConfigId = (int)configID.Value;
-
-                    if (model.Topics != null)
-                        AddTopicsToConfig(model.Topics, (int)model.ConfigId, connection);
-                    if (model.Tags != null)
-                        AddTagsToConfig(model.Tags, (int)model.ConfigId, connection);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
+                connection.ConnectionString = connectionString;
+                connection.Open();
+                string addConfigQuery =
+                       @"INSERT INTO Configuration (UserId) 
+                       VALUES (@UserId);
+                       SELECT @ConfigID = SCOPE_IDENTITY();";
+                var addConfigCmd = factory.CreateCommand();
+                addConfigCmd.CommandText = addConfigQuery;
+                addConfigCmd.Connection = connection;
+                var param = factory.CreateParameter();
+                param.ParameterName = "@UserId";
+                param.Value = userId;
+                param.DbType = DbType.Int32;
+                addConfigCmd.Parameters.Add(param);
+                var configID = factory.CreateParameter();
+                configID.ParameterName = "@ConfigID";
+                configID.Direction = ParameterDirection.Output;
+                configID.DbType = DbType.Int32;
+                addConfigCmd.Parameters.Add(configID);
+                addConfigCmd.ExecuteNonQuery();
+                return Convert.ToInt32(configID.Value);
             }
         }
-
         public bool IsLoggedIn(String sessionID)
         {
             return GetUserIdBySession(sessionID).HasValue;
@@ -141,12 +79,11 @@ namespace InstaBotPrototype.Services.DB
                 var selectTelegram = factory.CreateCommand();
                 selectTelegram.Connection = dbConnection;
                 selectTelegram.CommandText = $"SELECT TelegramVerificationKey FROM dbo.TelegramVerification WHERE UserId = @id";
-                selectTelegram.Parameters.Add(new SqlParameter
-                {
-                    ParameterName = "@id",
-                    SqlDbType = SqlDbType.Int,
-                    Value = id
-                });
+                var telegramParam = factory.CreateParameter();
+                telegramParam.ParameterName = "@id";
+                telegramParam.Value = id;
+                telegramParam.DbType = DbType.Int32;
+                selectTelegram.Parameters.Add(telegramParam);
                 var readerKey = selectTelegram.ExecuteReader();
                 if (readerKey.HasRows)
                 {
@@ -200,233 +137,370 @@ namespace InstaBotPrototype.Services.DB
                 return Convert.ToInt32(insertCmd.ExecuteScalar()) == 1;
             }
         }
+        public IEnumerable<string> GetUserTopics(int userId)
+        {
+            var topics = new List<string>();
+            using (var DbConnection = factory.CreateConnection())
+            {
+                DbConnection.ConnectionString = connectionString;
+                DbConnection.Open();
+                var selectTopics = factory.CreateCommand();
+                selectTopics.CommandText = @"SELECT Topic FROM dbo.Configuration 
+                                            JOIN dbo.ConfigTopic ON dbo.Configuration.ConfigID = dbo.ConfigTopic.ConfigID 
+                                            JOIN Topic ON dbo.Topic.TopicID = dbo.ConfigTopic.TopicID
+                                            WHERE dbo.ConfigTopic.ConfigID = (SELECT MAX(ConfigID) from dbo.Configuration WHERE dbo.Configuration.UserId = @id)";
+                selectTopics.Connection = DbConnection;
+                var parameter = factory.CreateParameter();
+                parameter.ParameterName = "@id";
+                parameter.Value = userId;
+                selectTopics.Parameters.Add(parameter);
+                var topicsReader = selectTopics.ExecuteReader();
+                while (topicsReader.Read())
+                {
+                    topics.Add(topicsReader.GetString(0));
+                }
+                topicsReader.Close();
+            }
+            return topics;
+        }
+        public IEnumerable<string> GetUserTags(int userId)
+        {
+            var tags = new List<string>();
+            using (var DbConnection = factory.CreateConnection())
+            {
+                DbConnection.ConnectionString = connectionString;
+                DbConnection.Open();
+                var selectTags = factory.CreateCommand();
+                selectTags.CommandText = @"SELECT Tag FROM dbo.Configuration 
+                                            JOIN dbo.ConfigTag ON dbo.Configuration.ConfigID = dbo.ConfigTag.ConfigID 
+                                            JOIN Tag ON dbo.Tag.TagID = dbo.ConfigTag.TagID
+                                            WHERE dbo.ConfigTag.ConfigID = (SELECT MAX(ConfigID) from dbo.Configuration WHERE dbo.Configuration.UserId = @id)";
+                selectTags.Connection = DbConnection;
+                var parameter = factory.CreateParameter();
+                parameter.ParameterName = "@id";
+                parameter.Value = userId;
+                parameter.DbType = System.Data.DbType.Int32;
+                selectTags.Parameters.Add(parameter);
+                var tagsReader = selectTags.ExecuteReader();
+                while (tagsReader.Read())
+                {
+                    tags.Add(tagsReader.GetString(0));
+                }
+                tagsReader.Close();
+            }
+            return tags;
+        }
+        public int? GetLatestConfig(int userId)
+        {
+            int? configId = null;
+            using (var dbConnection = factory.CreateConnection())
+            {
+                dbConnection.ConnectionString = connectionString;
+                dbConnection.Open();
+                var selectTags = factory.CreateCommand();
+                selectTags.CommandText = @"SELECT MAX(ConfigID) from dbo.Configuration WHERE dbo.Configuration.UserId = @id";
+                selectTags.Connection = dbConnection;
+                var parameter = factory.CreateParameter();
+                parameter.ParameterName = "@id";
+                parameter.Value = userId;
+                parameter.DbType = System.Data.DbType.Int32;
+                selectTags.Parameters.Add(parameter);
+                var queryResult = selectTags.ExecuteScalar();
+                try
+                {
+                    configId = Convert.ToInt32(queryResult);
+                }
+                catch {
+                    configId = AddConfig(userId);
+                }
+            }
+            return configId;
+        }
+        public void AddTag(string item, int configId)
+        {
+            using (var dbConnection = factory.CreateConnection())
+            {
+                dbConnection.ConnectionString = connectionString;
+                dbConnection.Open();
+                var tagID = GetTagId(item, dbConnection);
+                if (!tagID.HasValue)
+                {
+                    tagID = InsertTag(item, dbConnection);
+                }
+                AssignConfigTag(tagID.Value, configId, dbConnection);
+            }
+        }
+        public void AddTopic(string item, int configId)
+        {
+            using (var dbConnection = factory.CreateConnection())
+            {
+                dbConnection.ConnectionString = connectionString;
+                dbConnection.Open();
+                var topicID = GetTopicId(item, dbConnection);
+                if (!topicID.HasValue)
+                {
+                    topicID = InsertTopic(item, dbConnection);
+                }
+                AssignConfigTopic(topicID.Value, configId, dbConnection);
+            }
+        }
+        public void DeleteTag(string item, int configId)
+        {
+            using (var dbConnection = factory.CreateConnection())
+            {
+                dbConnection.ConnectionString = connectionString;
+                dbConnection.Open();
+                var topicId = GetTagId(item, dbConnection);
+                using (var configTopicExistsCmd = factory.CreateCommand())
+                {
+                    configTopicExistsCmd.Connection = dbConnection;
+                    configTopicExistsCmd.CommandText = "SELECT COUNT(ConfigID) FROM ConfigTag WHERE ConfigID = @ConfigID AND TagID = @TagID";
+                    var configParam = factory.CreateParameter();
+                    configParam.ParameterName = "@ConfigID";
+                    configParam.Value = configId;
+                    configParam.DbType = DbType.Int32;
+                    configTopicExistsCmd.Parameters.Add(configParam);
+                    var topicParam = factory.CreateParameter();
+                    topicParam.ParameterName = "@TagID";
+                    topicParam.Value = topicId;
+                    topicParam.DbType = DbType.Int32;
+                    configTopicExistsCmd.Parameters.Add(topicParam);
+                    if (Convert.ToBoolean(configTopicExistsCmd.ExecuteScalar()))
+                    {
+                        using (var addConfigTopicCmd = factory.CreateCommand())
+                        {
+                            addConfigTopicCmd.CommandText = "DELETE FROM ConfigTag WHERE ConfigID = @ConfigID AND TagID = @TagID";
+                            addConfigTopicCmd.Connection = dbConnection;
+                            configParam = factory.CreateParameter();
+                            configParam.ParameterName = "@ConfigID";
+                            configParam.Value = configId;
+                            configParam.DbType = DbType.Int32;
+                            addConfigTopicCmd.Parameters.Add(configParam);
+                            topicParam = factory.CreateParameter();
+                            topicParam.ParameterName = "@TagID";
+                            topicParam.Value = topicId;
+                            topicParam.DbType = DbType.Int32;
+                            addConfigTopicCmd.Parameters.Add(topicParam);
+                            addConfigTopicCmd.ExecuteNonQuery();
+                        }
+                    }
+                }
+            }
+        }
+        public void DeleteTopic(string item, int configId)
+        {
+            using (var dbConnection = factory.CreateConnection())
+            {
+                dbConnection.ConnectionString = connectionString;
+                dbConnection.Open();
+                var topicId = GetTopicId(item, dbConnection);
+                using (var configTopicExistsCmd = factory.CreateCommand())
+                {
+                    configTopicExistsCmd.Connection = dbConnection;
+                    configTopicExistsCmd.CommandText = "SELECT COUNT(ConfigID) FROM ConfigTopic WHERE ConfigID = @ConfigID AND TopicID = @TopicID";
+                    var configParam = factory.CreateParameter();
+                    configParam.ParameterName = "@ConfigID";
+                    configParam.Value = configId;
+                    configParam.DbType = DbType.Int32;
+                    configTopicExistsCmd.Parameters.Add(configParam);
+                    var topicParam = factory.CreateParameter();
+                    topicParam.ParameterName = "@TopicID";
+                    topicParam.Value = topicId;
+                    topicParam.DbType = DbType.Int32;
+                    configTopicExistsCmd.Parameters.Add(topicParam);
+                    if (Convert.ToBoolean(configTopicExistsCmd.ExecuteScalar()))
+                    {
+                        using (var addConfigTopicCmd = factory.CreateCommand())
+                        {
+                            addConfigTopicCmd.CommandText = "DELETE FROM ConfigTopic WHERE ConfigID = @ConfigID AND TopicID = @TopicID";
+                            addConfigTopicCmd.Connection = dbConnection;
+                            configParam = factory.CreateParameter();
+                            configParam.ParameterName = "@ConfigID";
+                            configParam.Value = configId;
+                            configParam.DbType = DbType.Int32;
+                            addConfigTopicCmd.Parameters.Add(configParam);
+                            topicParam = factory.CreateParameter();
+                            topicParam.ParameterName = "@TopicID";
+                            topicParam.Value = topicId;
+                            topicParam.DbType = DbType.Int32;
+                            addConfigTopicCmd.Parameters.Add(topicParam);
+                            addConfigTopicCmd.ExecuteNonQuery();
+                        }
+                    }
+                }
+            }
+        }
         #endregion
 
         #region Private helper methods
 
-        private IEnumerable<TopicModel> GetTopicsByConfigId(int? configId, SqlConnection connection)
-        {
-            if (configId != null)
-            {
-                string getTopic =
-                    "SELECT T.Topic " +
-                    "FROM ConfigTopic CT  " +
-                    "JOIN Topic T ON T.TopicID = CT.TopicID " +
-                    "WHERE CT.ConfigID = @ConfigID;";
-
-                var getTopicCmd = new SqlCommand(getTopic, connection);
-                var configID = new SqlParameter
-                {
-                    ParameterName = "@ConfigID",
-                    SqlDbType = SqlDbType.Int,
-                    Value = configId
-                };
-                getTopicCmd.Parameters.Add(configID);
-
-                var reader = getTopicCmd.ExecuteReader();
-                var topics = new List<TopicModel>();
-                try
-                {
-                    while (reader.Read())
-                    {
-                        topics.Add(new TopicModel { Topic = reader.GetString(0) });
-                    }
-                }
-                finally
-                {
-                    reader.Close();
-                }
-                return topics;
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        private IEnumerable<TagModel> GetTagsByConfigId(int? configId, SqlConnection connection)
-        {
-            if (configId != null)
-            {
-                string getTag =
-                    "SELECT T.Tag " +
-                    "FROM ConfigTag CT " +
-                    "JOIN Tag T ON T.TagID = CT.TagID " +
-                    "WHERE CT.ConfigID = @ConfigID;";
-
-                var getTagCmd = new SqlCommand(getTag, connection);
-                var configID = new SqlParameter
-                {
-                    ParameterName = "@ConfigID",
-                    SqlDbType = SqlDbType.Int,
-                    Value = configId
-                };
-                getTagCmd.Parameters.Add(configID);
-                var reader = getTagCmd.ExecuteReader();
-
-                var tags = new List<TagModel>();
-                try
-                {
-                    while (reader.Read())
-                    {
-                        tags.Add(new TagModel { Tag = reader.GetString(0) });
-                    }
-                }
-                finally
-                {
-                    reader.Close();
-                }
-                return tags;
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        private int AddTag(string tag, SqlConnection connection)
+        private int InsertTag(string tag, DbConnection connection)
         {
             var addTagCmd =
-                    new SqlCommand("INSERT INTO Tag (Tag) VALUES (@Tag);SELECT @TagID = SCOPE_IDENTITY()", connection);
-            addTagCmd.Parameters.Add(new SqlParameter() { ParameterName = "@Tag", SqlDbType = SqlDbType.NVarChar, Value = tag });
-            var tagID = new SqlParameter
-            {
-                ParameterName = "@TagID",
-                SqlDbType = SqlDbType.Int,
-                Direction = ParameterDirection.Output
-            };
-            addTagCmd.Parameters.Add(tagID);
+                    factory.CreateCommand();
+            addTagCmd.CommandText = "INSERT INTO Tag (Tag) VALUES (@Tag);SELECT @TagID = SCOPE_IDENTITY()";
+            addTagCmd.Connection = connection;
+            var tagParam = factory.CreateParameter();
+            tagParam.ParameterName = "@Tag";
+            tagParam.Value = tag;
+            addTagCmd.Parameters.Add(tagParam);
+            var tagIDParam = factory.CreateParameter();
+            tagIDParam.DbType = DbType.Int32;
+            tagIDParam.Direction = ParameterDirection.Output;
+            tagIDParam.ParameterName = "@TagID";
+            addTagCmd.Parameters.Add(tagIDParam);
             addTagCmd.ExecuteNonQuery();
-            return (int)tagID.Value;
+            return Convert.ToInt32(tagIDParam.Value);
         }
-
-        private int AddTopic(string topic, SqlConnection connection)
+        private int InsertTopic(string topic, DbConnection connection)
         {
-            var topicId = GetTopicId(topic, connection);
-            if (!topicId.HasValue)
-            {
-                var addTopicCmd =
-                    new SqlCommand("INSERT INTO Topic (Topic) VALUES (@Topic);SELECT @TopicID = SCOPE_IDENTITY()", connection);
-                addTopicCmd.Parameters.Add(new SqlParameter() { ParameterName = "@Topic", SqlDbType = SqlDbType.NVarChar, Value = topic });
-                var topicID = new SqlParameter
-                {
-                    ParameterName = "@TopicID",
-                    SqlDbType = SqlDbType.Int,
-                    Direction = ParameterDirection.Output
-                };
-                addTopicCmd.Parameters.Add(topicID);
-                addTopicCmd.ExecuteNonQuery();
-                return (int)topicID.Value;
-            }
-            else
-            {
-                return topicId.Value;
-            }
+            var addTagCmd = factory.CreateCommand();
+            addTagCmd.CommandText = "INSERT INTO Topic (Topic) VALUES (@Topic); SELECT @TopicID = SCOPE_IDENTITY()";
+            addTagCmd.Connection = connection;
+            var tagParam = factory.CreateParameter();
+            tagParam.ParameterName = "@Topic";
+            tagParam.Value = topic;
+            addTagCmd.Parameters.Add(tagParam);
+            var tagIDParam = factory.CreateParameter();
+            tagIDParam.DbType = DbType.Int32;
+            tagIDParam.Direction = ParameterDirection.Output;
+            tagIDParam.ParameterName = "@TopicID";
+            addTagCmd.Parameters.Add(tagIDParam);
+            addTagCmd.ExecuteNonQuery();
+            return Convert.ToInt32(tagIDParam.Value);
         }
-
-        private int? GetTagId(string tag, SqlConnection connection)
+        private int? GetTagId(string tag, DbConnection connection)
         {
-            using (var tagExistsCmd = new SqlCommand("SELECT COUNT(TagID) FROM Tag WHERE Tag = @Tag;", connection))
+            using (var tagExistsCmd = factory.CreateCommand())
             {
-                tagExistsCmd.Parameters.Add("@Tag", SqlDbType.NVarChar, fieldLength).Value = tag;
+                tagExistsCmd.CommandText = "SELECT COUNT(TagID) FROM Tag WHERE Tag = @Tag;";
+                tagExistsCmd.Connection = connection;
+                var tagParam = factory.CreateParameter();
+                tagParam.Value = tag;
+                tagParam.ParameterName = "@Tag";
+                tagExistsCmd.Parameters.Add(tagParam);
                 bool tagExists = Convert.ToBoolean(tagExistsCmd.ExecuteScalar());
 
                 if (tagExists)
                 {
-                    using (var getTagIdCmd = new SqlCommand("SELECT TagID FROM Tag WHERE Tag = @Tag", connection))
+                    using (var getTagIdCmd = factory.CreateCommand())
                     {
-                        getTagIdCmd.Parameters.Add("@Tag", SqlDbType.NVarChar, fieldLength).Value = tag;
+                        getTagIdCmd.CommandText = "SELECT TagID FROM Tag WHERE Tag = @Tag";
+                        getTagIdCmd.Connection = connection;
+                        tagParam = factory.CreateParameter();
+                        tagParam.Value = tag;
+                        tagParam.ParameterName = "@Tag";
+                        getTagIdCmd.Parameters.Add(tagParam);
                         return Convert.ToInt32(getTagIdCmd.ExecuteScalar());
                     }
                 }
                 return null;
             }
         }
-
-        private int? GetTopicId(string topic, SqlConnection connection)
+        private int? GetTopicId(string topic, DbConnection connection)
         {
-            using (var topicExistsCmd = new SqlCommand("SELECT COUNT(TopicID) FROM Topic WHERE Topic = @Topic", connection))
+            using (var tagExistsCmd = factory.CreateCommand())
             {
-                topicExistsCmd.Parameters.Add("@Topic", SqlDbType.NVarChar, fieldLength).Value = topic;
-                bool topicExists = Convert.ToBoolean(topicExistsCmd.ExecuteScalar());
-                if (topicExists)
+                tagExistsCmd.CommandText = "SELECT COUNT(TopicID) FROM Topic WHERE Topic = @Topic;";
+                tagExistsCmd.Connection = connection;
+                var tagParam = factory.CreateParameter();
+                tagParam.Value = topic;
+                tagParam.ParameterName = "@Topic";
+                tagExistsCmd.Parameters.Add(tagParam);
+                bool tagExists = Convert.ToBoolean(tagExistsCmd.ExecuteScalar());
+
+                if (tagExists)
                 {
-                    using (var getTopicIdCmd = new SqlCommand("SELECT TopicID FROM Topic WHERE Topic = @Topic", connection))
+                    using (var getTagIdCmd = factory.CreateCommand())
                     {
-                        getTopicIdCmd.Parameters.Add("@Topic", SqlDbType.NVarChar, fieldLength).Value = topic;
-                        return Convert.ToInt32(getTopicIdCmd.ExecuteScalar());
+                        getTagIdCmd.CommandText = "SELECT TopicID FROM Topic WHERE Topic = @Topic";
+                        getTagIdCmd.Connection = connection;
+                        tagParam = factory.CreateParameter();
+                        tagParam.Value = topic;
+                        tagParam.ParameterName = "@Topic";
+                        getTagIdCmd.Parameters.Add(tagParam);
+                        return Convert.ToInt32(getTagIdCmd.ExecuteScalar());
                     }
                 }
                 return null;
             }
         }
-
-        private void AssignConfigTag(int tagId, int configId, SqlConnection connection)
+        private void AssignConfigTag(int tagId, int configId, DbConnection connection)
         {
-            using (var configTagExistsCmd = new SqlCommand("SELECT COUNT(ConfigID) FROM ConfigTag WHERE ConfigID = @ConfigID AND TagID = @TagID", connection))
+            using (var configTagExistsCmd = factory.CreateCommand())
             {
-                configTagExistsCmd.Parameters.Add(new SqlParameter { ParameterName = "@ConfigID", SqlDbType = SqlDbType.Int, Value = configId });
-                configTagExistsCmd.Parameters.Add(new SqlParameter { ParameterName = "@TagID", SqlDbType = SqlDbType.Int, Value = tagId });
-                // Not exists
+                configTagExistsCmd.CommandText = "SELECT COUNT(ConfigID) FROM ConfigTag WHERE ConfigID = @ConfigID AND TagID = @TagID";
+                configTagExistsCmd.Connection = connection;
+                var configParam = factory.CreateParameter();
+                configParam.ParameterName = "@ConfigID";
+                configParam.Value = configId;
+                configParam.DbType = DbType.Int32;
+                configTagExistsCmd.Parameters.Add(configParam);
+                var tagParam = factory.CreateParameter();
+                tagParam.ParameterName = "@TagID";
+                tagParam.Value = tagId;
+                tagParam.DbType = DbType.Int32;
+                configTagExistsCmd.Parameters.Add(tagParam);
                 if (!Convert.ToBoolean(configTagExistsCmd.ExecuteScalar()))
                 {
-                    using (var addConfigTagCmd = new SqlCommand("INSERT INTO ConfigTag (ConfigID, TagID) VALUES(@ConfigID, @TagID)", connection))
+                    using (var addConfigTagCmd = factory.CreateCommand())
                     {
-                        addConfigTagCmd.Parameters.Add("@ConfigID", SqlDbType.Int).Value = configId;
-                        addConfigTagCmd.Parameters.Add("@TagID", SqlDbType.Int).Value = tagId;
+                        addConfigTagCmd.CommandText = "INSERT INTO ConfigTag (ConfigID, TagID) VALUES(@ConfigID, @TagID)";
+                        addConfigTagCmd.Connection = connection;
+                        configParam = factory.CreateParameter();
+                        configParam.ParameterName = "@ConfigID";
+                        configParam.Value = configId;
+                        configParam.DbType = DbType.Int32;
+                        tagParam = factory.CreateParameter();
+                        tagParam.ParameterName = "@TagID";
+                        tagParam.Value = tagId;
+                        tagParam.DbType = DbType.Int32;
+                        addConfigTagCmd.Parameters.Add(configParam);
+                        addConfigTagCmd.Parameters.Add(tagParam);
+                        addConfigTagCmd.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
+        private void AssignConfigTopic(int topicId, int configId, DbConnection connection)
+        {
+            using (var configTagExistsCmd = factory.CreateCommand())
+            {
+                configTagExistsCmd.CommandText = "SELECT COUNT(ConfigID) FROM ConfigTopic WHERE ConfigID = @ConfigID AND TopicID = @TopicID";
+                configTagExistsCmd.Connection = connection;
+                var configParam = factory.CreateParameter();
+                configParam.ParameterName = "@ConfigID";
+                configParam.Value = configId;
+                configParam.DbType = DbType.Int32;
+                configTagExistsCmd.Parameters.Add(configParam);
+                var tagParam = factory.CreateParameter();
+                tagParam.ParameterName = "@TopicID";
+                tagParam.Value = topicId;
+                tagParam.DbType = DbType.Int32;
+                configTagExistsCmd.Parameters.Add(tagParam);
+                if (!Convert.ToBoolean(configTagExistsCmd.ExecuteScalar()))
+                {
+                    using (var addConfigTagCmd = factory.CreateCommand())
+                    {
+                        addConfigTagCmd.CommandText = "INSERT INTO ConfigTopic (ConfigID, TopicID) VALUES(@ConfigID, @TopicID)";
+                        addConfigTagCmd.Connection = connection;
+                        configParam = factory.CreateParameter();
+                        configParam.ParameterName = "@ConfigID";
+                        configParam.Value = configId;
+                        configParam.DbType = DbType.Int32;
+                        tagParam = factory.CreateParameter();
+                        tagParam.ParameterName = "@TopicID";
+                        tagParam.Value = topicId;
+                        tagParam.DbType = DbType.Int32;
+                        addConfigTagCmd.Parameters.Add(configParam);
+                        addConfigTagCmd.Parameters.Add(tagParam);
                         addConfigTagCmd.ExecuteNonQuery();
                     }
                 }
             }
         }
 
-        private void AssignConfigTopic(int topicId, int? configId, SqlConnection connection)
-        {
-            using (var configTopicExistsCmd = new SqlCommand("SELECT COUNT(ConfigID) FROM ConfigTopic WHERE ConfigID = @ConfigID AND TopicID = @TopicID", connection))
-            {
-                configTopicExistsCmd.Parameters.Add(new SqlParameter { ParameterName = "@ConfigID", SqlDbType = SqlDbType.Int, Value = configId });
-                configTopicExistsCmd.Parameters.Add(new SqlParameter { ParameterName = "@TopicID", SqlDbType = SqlDbType.Int, Value = topicId });
 
-                // Not exists
-                if (!Convert.ToBoolean(configTopicExistsCmd.ExecuteScalar()))
-                {
-                    using (var addConfigTopicCmd = new SqlCommand("INSERT INTO ConfigTopic (ConfigID, TopicID) VALUES(@ConfigID, @TopicID)", connection))
-                    {
-                        addConfigTopicCmd.Parameters.Add("@ConfigID", SqlDbType.Int).Value = configId;
-                        addConfigTopicCmd.Parameters.Add("@TopicID", SqlDbType.Int).Value = topicId;
-                        addConfigTopicCmd.ExecuteNonQuery();
-                    }
-                }
-            }
-        }
-
-        private void AddTagsToConfig(IEnumerable<TagModel> tags, int configId, SqlConnection connection)
-        {
-            foreach (var tag in tags)
-            {
-                var current = tag.Tag.Trim();
-                var tagId = GetTagId(current, connection);
-                if (!tagId.HasValue)
-                {
-                    tagId = AddTag(current, connection);
-                }
-                AssignConfigTag(tagId.Value, configId, connection);
-            }
-        }
-
-        private void AddTopicsToConfig(IEnumerable<TopicModel> topics, int configId, SqlConnection connection)
-        {
-            foreach (var topic in topics)
-            {
-                var current = topic.Topic.Trim();
-                var topicId = GetTopicId(current, connection);
-                if (!topicId.HasValue)
-                {
-                    topicId = AddTopic(current, connection);
-                }
-                AssignConfigTopic(topicId.Value, configId, connection);
-            }
-        }
         #endregion
     }
 }
