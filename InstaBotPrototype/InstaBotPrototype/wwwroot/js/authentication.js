@@ -48,6 +48,7 @@ $("#logOut").click(function (e) {
     $("#btnSignup").show();
     $("#btnLogin").show();
     $("#authPage").hide();
+    $("#welcome-info").show();
     $("#modalLogin")[0].reset();
     $("#modalSignup")[0].reset();
     tags = [];
@@ -55,6 +56,7 @@ $("#logOut").click(function (e) {
     $(".tag-topic").remove();
 });
 function clickHandler(errorDiv, $form) {
+    $("#welcome-info").hide();
     $.ajax({
         type: $form.attr('method'),
         url: $form.attr('action'),

@@ -153,3 +153,12 @@ body {
 .error-div {
     margin-bottom: 5px;
 }
+
+.welcome-page-image {
+    padding: 0 15% 20% 15%; 
+}
+
+.welcome-page-text {
+    text-align: center;
+    width:100%;
+}
