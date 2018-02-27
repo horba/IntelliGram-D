@@ -8,7 +8,11 @@ namespace InstaBotPrototype.Controllers
     [Route("api/[controller]/[action]")]
     public class ConfigurationController : Controller
     {
-        IConfigService configService = new ConfigService();
+        private readonly IConfigService configService;
+        public ConfigurationController(IConfigService _configService)
+        {
+            configService = _configService;
+        }
         [HttpGet]
         public IActionResult VerifyKey()
         {

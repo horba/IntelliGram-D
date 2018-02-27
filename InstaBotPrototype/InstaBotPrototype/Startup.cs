@@ -1,6 +1,7 @@
 ﻿using InstaBotPrototype.Services;
 using InstaBotPrototype.Services.DB;
 using InstaBotPrototype.Services.Instagram;
+using InstaBotPrototype.Services.Autocompletion;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -26,6 +27,8 @@ namespace InstaBotPrototype
             services.AddTransient<IConfigService, ConfigService>();
             services.AddTransient<IAuthenticationService, AuthenticationService>();
             services.AddTransient<IInstagramService, InstagramService>();
+            services.AddTransient<IAutocompletionService, AutocompletionService>();
+            services.AddTransient<IStatService, StatService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -260,9 +260,9 @@ namespace Worker
                 {
                     var response = client.GetByteArrayAsync(post.Images.StandartResolution.Url).Result;
                     var description = recognizer.RecognizeTopic(response);
-                    var topicsRec = description.Tags.Select(x => new TopicModel(0, x)).ToList();
+                    var topicsRec = description.Tags.Select(x => new TopicModel(0, x));
                     var matchingTopics = topics.Intersect(topicsRec, new MyEqualityComparer());
-                    var matchingTags = tags.Intersect(post.Tags.Select(x => new TopicModel(0, x)), new MyEqualityComparer()).ToList();
+                    var matchingTags = tags.Intersect(post.Tags.Select(x => new TopicModel(0, x)), new MyEqualityComparer());
                     if (matchingTopics.Count() > 0 || matchingTags.Count() > 0)
                     {
                         var caption = description.Captions.FirstOrDefault();
