@@ -5,7 +5,7 @@
         return parts.pop().split(";").shift();
 }
 function initConfigPage() {
-
+    $("#welcome-info").hide();
     $.ajax('api/Statistic/Photos', {
         method: 'GET',
         dataType: 'json',
